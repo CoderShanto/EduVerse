@@ -1,0 +1,9 @@
+# Laravel uploads (do not commit)
+backend/public/uploads/
+backend/public/uploads/course/videos/
+backend/public/uploads/course/images/
+
+# Common
+.env
+/vendor
+/node_modules

@@ -1,0 +1,354 @@
+import React, { useEffect, useState } from 'react'
+import Layout from '../common/Layout'
+import { Rating } from 'react-simple-star-rating'
+import ReactPlayer from 'react-player'
+import { Accordion, Badge, ListGroup, Card } from "react-bootstrap";
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { apiUrl, convertMinutesToHours, token} from '../common/Config';
+import { LuMonitorPlay } from "react-icons/lu";
+import Loading from '../common/Loading';
+import FreePreview from '../common/FreePreview';
+import toast from 'react-hot-toast';
+
+
+
+export const Detail = () => {
+   const [rating, setRating] = useState(4.0)
+
+   const [show, setShow] = useState(false);
+   const [freeLesson, setFreeLesson] = useState(null)
+
+  const handleClose = () => setShow(false);
+  const handleShow = (lesson) => {
+    setShow(true);
+    setFreeLesson(lesson)
+  }
+
+   const [loading, setLoading] = useState(true)
+    const [course, setCourse] = useState(null)
+   const params = useParams();
+   const navigate = useNavigate();
+
+   const fetchCourse = () =>{
+            setLoading(true)
+        
+                fetch(`${apiUrl}/fetch-course/${params.id}`, {
+              method: "GET",
+              headers: {
+                "Content-type": "application/json",
+                Accept: "application/json",
+              },
+              
+            })
+              .then((res) => res.json())
+              .then((result) => {
+                console.log(result);
+                setLoading(false)
+        
+                if(result.status == 200){
+                    
+                    setCourse(result.data)
+                }else{
+                    console.log("Something went wrong");
+                }
+                
+              });
+        
+              }
+
+              const enrollCourse = async () =>{
+
+                var data = {
+                    course_id : course.id
+
+                    
+                }
+        
+               await fetch(`${apiUrl}/enroll-course`, {
+              method: "POST",
+              headers: {
+                'Content-type': 'application/json',
+                'Accept': 'application/json',
+                'Authorization' : `Bearer ${token}`
+              },
+              body: JSON.stringify(data)
+              
+            })
+              .then( async res => {
+                const result = await res.json();
+                return {
+                    status: res.status,
+                    data: result
+                }
+              })
+              .then(({status,data}) => {
+                if(status == 200){
+                    toast.success(data.message)
+                }else if(status == 401){
+                    toast.error("Please login to enroll this course")
+                    navigate('/account/login')
+
+                }else{
+                    toast.error(data.message)
+                }
+                
+              });
+        
+              }
+
+             useEffect(() => {
+  if (!params.id) {
+    console.warn("No ID provided in URL");
+    return;
+  }
+  fetchCourse();
+}, [params.id]);
+
+
+  return (
+    
+    <Layout>
+        {
+            freeLesson && <FreePreview 
+            show={show}
+            handleClose={handleClose}
+            freeLesson={freeLesson}
+            />
+        }
+        {
+            loading == true && <div className='mt-5'><Loading /></div>
+        }
+        {
+            loading == false && course &&
+        
+       <div className='container pb-5 pt-3'>
+            <nav aria-label="breadcrumb">
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item"><a href="/">Home</a></li>
+                    <li className="breadcrumb-item"><a href="/courses">Courses</a></li>
+                    <li className="breadcrumb-item active" aria-current="page">{course.title}</li>
+                </ol>
+            </nav>
+            <div className='row my-5'>
+                <div className='col-lg-8'>
+                    <h2>{course.title}</h2>
+                    <div className='d-flex'>
+                        <div className='mt-1'>
+                            <span className="badge bg-green">{course?.category.name}</span>
+                        </div>
+                        <div className='d-flex ps-3'>
+                            <div className="text pe-2 pt-1">{course?.rating}</div>
+                            <Rating readonly initialValue={rating} size={20} />                            
+                        </div>
+                    </div>
+                    <div className="row mt-4">
+                        {/* <div className="col">
+                            <span className="text-muted d-block">Last Updates</span>
+                            <span className="fw-bold">Aug 2021</span>
+                        </div> */}
+                        <div className="col">
+                            <span className="text-muted d-block">Level</span>
+                            <span className="fw-bold">{course.level.name}</span>
+                        </div>
+                        <div className="col">
+                            <span className="text-muted d-block">Students</span>
+                            <span className="fw-bold">{course?.enrollments_count}</span>
+                        </div>
+                        <div className="col">
+                            <span className="text-muted d-block">Language</span>
+                            <span className="fw-bold">{course.language.name}</span>
+                        </div>
+                    </div>
+                    <div className='row'>
+                        <div className='col-md-12 mt-4'>
+                            <div className='border bg-white rounded-3 p-4'>
+                                <h3 className='mb-3  h4'>Overview</h3>
+                                {course.description}
+                            </div>
+                        </div>
+                        <div className='col-md-12 mt-4'>
+                            <div className='border bg-white rounded-3 p-4'>
+                                <h3 className='mb-3 h4'>What you will learn</h3>
+                                <ul className="list-unstyled mt-3">
+                                    {
+                                        course.outcomes && course.outcomes.map(outcome => {
+                                            return(
+                                                <li className="d-flex align-items-center mb-2">
+                                        <span className="text-success me-2">&#10003;</span>
+                                        <span>{outcome.text}</span>
+                                    </li>
+
+                                            )
+                                        })
+                                    }
+                                    
+                                    <li className="d-flex align-items-center mb-2">
+                                        <span className="text-success me-2">&#10003;</span>
+                                        <span>Write your own independent programs in Python</span>
+                                    </li>
+                                    <li className="d-flex align-items-center">
+                                        <span className="text-success me-2">&#10003;</span>
+                                        <span>Understand the basics of Python language</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className='col-md-12 mt-4'>
+                            <div className='border bg-white rounded-3 p-4'>
+                                <h3 className='mb-3 h4'>Requirements</h3>
+                                <ul className="list-unstyled mt-3">
+                                     {
+                                        course.requirements && course.requirements.map(requirement => {
+                                            return(
+                                                <li className="d-flex align-items-center mb-2">
+                                        <span className="text-success me-2">&#10003;</span>
+                                        <span>{requirement.text}</span>
+                                    </li>
+
+                                            )
+                                        })
+                                    }                                   
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div className='col-md-12 mt-4'>
+                            <div className='border bg-white rounded-3 p-4'>
+                                <h3 className="h4 mb-3">Course Structure</h3>
+                                <p>
+                                    {course.chapters_count} Chapters . {course.total_lessons} Lectures . {convertMinutesToHours(course.total_duration)}
+                                </p>
+                                <Accordion defaultActiveKey="0" id="courseAccordion">
+                                    {
+                                        course.chapters && course.chapters.map((chapter,index) => {
+                                            return(
+                                                 <Accordion.Item eventKey={index}>
+                                        <Accordion.Header>
+                                            {chapter.title}<span className="ms-3 text-muted">({chapter.lessons_count}2 lectures - {convertMinutesToHours(chapter.lessons_sum_duration)})</span>
+                                        </Accordion.Header>
+                                        <Accordion.Body>
+                                            <ListGroup>
+                                                {
+                                                    chapter.lessons && chapter.lessons.map(lesson => {
+                                                        return(
+                                                            <ListGroup.Item>
+                                                <div className='row'>
+                                                    <div className='col-md-9'>
+                                                        <LuMonitorPlay className='me-2'/>
+                                                        {lesson.title}
+
+                                                    </div>
+
+                                                        <div className='col-md-3'>
+                                                            <div className='d-flex justify-content-end'>
+                                                                {
+                                                                    lesson.is_free_preview == 'yes' &&
+                                                                     <Badge bg="primary">
+                                                    <Link onClick={() => handleShow(lesson)} className="text-white text-decoration-none">Preview</Link>
+                                                </Badge>
+                                                                }
+                                                                
+                                                
+                                                        
+                                                            
+                                                <span className="text-muted ms-2">{convertMinutesToHours(lesson.duration)}</span>
+
+                                                    </div>
+
+                                                </div>
+                                                </div>
+                                               
+                                                
+                                                </ListGroup.Item>
+                                                            
+                                                        )
+                                                    })
+                                                }
+                                                
+                                               
+                                            </ListGroup>
+                                        </Accordion.Body>
+                                    </Accordion.Item>
+                                            )
+                                        })
+                                    }
+                                   
+                                    
+                                    </Accordion>                                
+                            </div>
+                        </div>
+
+                        <div className='col-md-12 mt-4'>
+                            <div className='border bg-white rounded-3 p-4'>
+                                <h3 className='mb-3 h4'>Reviews</h3>
+                                <h>Our student says about this course</h>
+
+                                <div className='mt-4'>
+
+                                {
+                                    course.reviews && course.reviews.map(review => {
+                                        return(
+                                            <div key={review.id} className="d-flex align-items-start mb-4 border-bottom pb-3">
+                                       
+                                        <div>
+                                            <h6 className="mb-0">{review?.user?.name} &nbsp; <span className="text-muted fs-6">{review.created_at}</span></h6>
+                                            <div className="text-warning mb-2">
+                                            <Rating readonly initialValue={review.rating} size={20} />  
+                                            </div>
+                                            <p className="mb-0">{review.comment}</p>
+                                        </div>
+                                    </div>
+
+                                        )
+                                    })
+                                }
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className='col-lg-4'>
+                    <div className='border rounded-3 bg-white p-4 shadow-sm'>
+                        <Card.Img src={course.course_small_image}/>
+                        <Card.Body className='mt-3'>
+                            <h3 className="fw-bold">${course.price}</h3>
+                            {
+                                course.cross_price &&
+                                <div className="text-muted text-decoration-line-through">${course.cross_price}</div>
+                            }
+                            
+                            {/* Buttons */}
+                            <div className="mt-4">
+                                <button onClick={() => enrollCourse()} className="btn btn-primary w-100">
+                                <i className="bi bi-ticket"></i> Enroll
+                                </button>
+                            </div>
+                        </Card.Body>
+                        <Card.Footer className='mt-4'>
+                            <h6 className="fw-bold">This course includes</h6>
+                            <ListGroup variant="flush">
+                                
+                                <ListGroup.Item className='ps-0'> 
+                                    <i className="bi bi-infinity text-primary me-2"></i>
+                                    Full lifetime access
+                                </ListGroup.Item>
+                                <ListGroup.Item className='ps-0'>
+                                    <i className="bi bi-tv text-primary me-2"></i>
+                                    Access on mobile and TV
+                                </ListGroup.Item>
+                                <ListGroup.Item className='ps-0'>
+                                    <i className="bi bi-award-fill text-primary me-2"></i>
+                                    Certificate of completion
+                                </ListGroup.Item>
+                            </ListGroup>
+                        </Card.Footer>
+                    </div>
+                </div>
+            </div>
+        </div>
+}
+    </Layout>
+  )
+}
