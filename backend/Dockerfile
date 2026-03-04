@@ -12,7 +12,7 @@ WORKDIR /app
 # Copy composer files first (better caching)
 COPY composer.json composer.lock ./
 
-# 🔥 IMPORTANT: disable scripts during build
+# Disable scripts during build
 RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --optimize-autoloader --no-scripts
 
 # ---- Runtime stage ----
@@ -32,9 +32,15 @@ COPY --from=vendor /app/vendor /var/www/html/vendor
 # Copy nginx config
 COPY ./deploy/nginx.conf /etc/nginx/http.d/default.conf
 
-# Permissions
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# ------------------------------
+# Laravel required permissions
+# ------------------------------
+RUN mkdir -p /var/www/html/storage/framework/{cache,sessions,views} \
+    && mkdir -p /var/www/html/bootstrap/cache \
+    && mkdir -p /var/www/html/public/uploads/course/small \
+    && mkdir -p /var/www/html/public/uploads/course/videos \
+    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/uploads \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public/uploads
 
 EXPOSE 80
 
