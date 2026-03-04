@@ -1,26 +1,38 @@
+// frontend/src/components/common/Config.jsx
 export const apiUrl = import.meta.env.VITE_API_URL;
-const userInfo = localStorage.getItem('userInfoLms');
-export const token = userInfo ? JSON.parse(userInfo).token : null;
+
+/**
+ * Always read token fresh from localStorage.
+ * (Fixes "token stale after login" problem)
+ */
+export const getToken = () => {
+  const userInfo = localStorage.getItem("userInfoLms");
+  try {
+    return userInfo ? JSON.parse(userInfo).token : null;
+  } catch {
+    return null;
+  }
+};
 
 export function convertMinutesToHours(minutes) {
-    let hours = Math.floor(minutes / 60);
-    let remainingMinutes = minutes % 60;
+  let hours = Math.floor(minutes / 60);
+  let remainingMinutes = minutes % 60;
 
-    if (hours > 0) {
-        let hString = hours === 1 ? "hr" : "hrs";
-        let mString = remainingMinutes === 1 ? "min" : "mins";
+  if (hours > 0) {
+    let hString = hours === 1 ? "hr" : "hrs";
+    let mString = remainingMinutes === 1 ? "min" : "mins";
 
-        if (remainingMinutes > 0) {
-            return `${hours} ${hString} ${remainingMinutes} ${mString}`;
-        } else {
-            return `${hours} ${hString}`;
-        }
+    if (remainingMinutes > 0) {
+      return `${hours} ${hString} ${remainingMinutes} ${mString}`;
     } else {
-        if (remainingMinutes > 0) {
-            let mString = remainingMinutes === 1 ? "min" : "mins";
-            return `${remainingMinutes} ${mString}`;
-        }
+      return `${hours} ${hString}`;
     }
+  } else {
+    if (remainingMinutes > 0) {
+      let mString = remainingMinutes === 1 ? "min" : "mins";
+      return `${remainingMinutes} ${mString}`;
+    }
+  }
 
-    return "0 min";
+  return "0 min";
 }
