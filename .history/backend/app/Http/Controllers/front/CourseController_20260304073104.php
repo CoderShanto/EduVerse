@@ -135,58 +135,61 @@ class CourseController extends Controller
     }
 
     public function saveCourseImage($id, Request $request)
-{
-    $course = Course::find($id);
+    {
+        $course = Course::find($id);
 
-    if ($course == null) {
+        if ($course == null) {
+            return response()->json([
+                'status' => 404,
+                'message' => 'Course not found.'
+            ], 404);
+        }
+
+        if (!$this->canManageCourse($request, $course)) {
+            return response()->json(['message' => 'Forbidden'], 403);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 422,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        if ($course->image != "") {
+            if (File::exists(public_path('uploads/course/' . $course->image))) {
+                File::delete(public_path('uploads/course/' . $course->image));
+            }
+            if (File::exists(public_path('uploads/course/small/' . $course->image))) {
+                File::delete(public_path('uploads/course/small/' . $course->image));
+            }
+        }
+
+        $image = $request->file('image');
+        $ext = $image->getClientOriginalExtension();
+        $imageName = time() . '-' . $id . '.' . $ext;
+
+        $image->move(public_path('uploads/course'), $imageName);
+
+        // Create small thumbnail
+        $manager = new ImageManager(Driver::class);
+        $img = $manager->read(public_path('uploads/course/' . $imageName));
+        $img->cover(750, 450);
+        $img->save(public_path('uploads/course/small/' . $imageName));
+
+        $course->image = $imageName;
+        $course->save();
+
         return response()->json([
-            'status' => 404,
-            'message' => 'Course not found.'
-        ], 404);
+            'status' => 200,
+            'data' => $course,
+            'message' => 'Course image has been uploaded successfully.'
+        ], 200);
     }
-
-    if (!$this->canManageCourse($request, $course)) {
-        return response()->json(['message' => 'Forbidden'], 403);
-    }
-
-    $validator = Validator::make($request->all(), [
-        'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120' // 5MB
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 422,
-            'errors' => $validator->errors()
-        ], 422);
-    }
-
-    // If old image is a Cloudinary URL, optionally delete it (skip for now)
-    // You can store public_id separately if you want to delete properly.
-
-    $uploaded = Cloudinary::upload(
-        $request->file('image')->getRealPath(),
-        [
-            'folder' => 'eduverse/courses',
-            'transformation' => [
-                'width' => 750,
-                'height' => 450,
-                'crop' => 'fill'
-            ]
-        ]
-    );
-
-    $secureUrl = $uploaded->getSecurePath(); // https url
-
-    // Save full URL instead of filename
-    $course->image = $secureUrl;
-    $course->save();
-
-    return response()->json([
-        'status' => 200,
-        'data' => $course,
-        'message' => 'Course image uploaded successfully (Cloudinary).'
-    ], 200);
-}
 
     public function changeStatus($id, Request $request)
     {
