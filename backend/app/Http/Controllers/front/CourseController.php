@@ -134,15 +134,12 @@ class CourseController extends Controller
         ], 200);
     }
 
-    public function saveCourseImage($id, Request $request)
+ public function saveCourseImage($id, Request $request)
 {
     $course = Course::find($id);
 
-    if ($course == null) {
-        return response()->json([
-            'status' => 404,
-            'message' => 'Course not found.'
-        ], 404);
+    if (!$course) {
+        return response()->json(['status' => 404, 'message' => 'Course not found.'], 404);
     }
 
     if (!$this->canManageCourse($request, $course)) {
@@ -150,41 +147,41 @@ class CourseController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-        'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120' // 5MB
+        'image' => 'required|image|mimes:jpeg,png,jpg'
     ]);
 
     if ($validator->fails()) {
-        return response()->json([
-            'status' => 422,
-            'errors' => $validator->errors()
-        ], 422);
+        return response()->json(['status' => 422, 'errors' => $validator->errors()], 422);
     }
 
-    // If old image is a Cloudinary URL, optionally delete it (skip for now)
-    // You can store public_id separately if you want to delete properly.
+    $image = $request->file('image');
 
-    $uploaded = Cloudinary::upload(
-        $request->file('image')->getRealPath(),
-        [
-            'folder' => 'eduverse/courses',
-            'transformation' => [
-                'width' => 750,
-                'height' => 450,
-                'crop' => 'fill'
-            ]
-        ]
-    );
+    // ✅ Upload to Cloudinary
+    $uploaded = Cloudinary::upload($image->getRealPath(), [
+        'folder' => 'eduverse/courses',
+        'resource_type' => 'image',
+    ]);
 
-    $secureUrl = $uploaded->getSecurePath(); // https url
+    $imageUrl = $uploaded->getSecurePath();
+    $publicId = $uploaded->getPublicId();
 
-    // Save full URL instead of filename
-    $course->image = $secureUrl;
+    // ✅ small thumbnail (750x450)
+    $smallUrl = Cloudinary::getUrl($publicId, [
+        'width' => 750,
+        'height' => 450,
+        'crop' => 'fill',
+        'secure' => true,
+    ]);
+
+    // Save URLs (you need these columns)
+    $course->image_url = $imageUrl;
+    $course->image_small_url = $smallUrl;
     $course->save();
 
     return response()->json([
         'status' => 200,
         'data' => $course,
-        'message' => 'Course image uploaded successfully (Cloudinary).'
+        'message' => 'Course image uploaded successfully.'
     ], 200);
 }
 
