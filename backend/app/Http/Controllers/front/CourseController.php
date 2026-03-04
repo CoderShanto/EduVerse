@@ -13,9 +13,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 
+
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\Log;
 
 class CourseController extends Controller
 {
@@ -137,84 +139,46 @@ class CourseController extends Controller
 public function saveCourseImage($id, Request $request)
 {
     $course = Course::find($id);
+    if (!$course) return response()->json(['status'=>404,'message'=>'Course not found.'],404);
+    if (!$this->canManageCourse($request, $course)) return response()->json(['message'=>'Forbidden'],403);
 
-    if ($course == null) {
-        return response()->json([
-            'status' => 404,
-            'message' => 'Course not found.'
-        ], 404);
-    }
-
-    if (!$this->canManageCourse($request, $course)) {
-        return response()->json(['message' => 'Forbidden'], 403);
-    }
-
-    $validator = Validator::make($request->all(), [
-        'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120' // 5MB
+    $request->validate([
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120'
     ]);
 
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 422,
-            'errors' => $validator->errors()
-        ], 422);
-    }
-
     try {
-        // ✅ Ensure folders exist (Render often doesn't have them)
-        $baseDir  = public_path('uploads/course');
-        $smallDir = public_path('uploads/course/small');
+        $cloudinary = new \Cloudinary\Cloudinary();
 
-        if (!File::exists($baseDir)) {
-            File::makeDirectory($baseDir, 0755, true);
-        }
-        if (!File::exists($smallDir)) {
-            File::makeDirectory($smallDir, 0755, true);
-        }
+        $upload = $cloudinary->uploadApi()->upload(
+            $request->file('image')->getRealPath(),
+            [
+                'folder' => 'course_covers',
+                'public_id' => 'course_'.$course->id.'_'.time(),
+            ]
+        );
 
-        // delete old images if exist
-        if (!empty($course->image)) {
-            $oldBase  = $baseDir . '/' . $course->image;
-            $oldSmall = $smallDir . '/' . $course->image;
+        // save full url
+        $course->image = $upload['secure_url'];
 
-            if (File::exists($oldBase))  File::delete($oldBase);
-            if (File::exists($oldSmall)) File::delete($oldSmall);
-        }
+        // optional: save small too (cloudinary transformation)
+        $course->course_small_image = $cloudinary->image($upload['public_id'])
+            ->resize(\Cloudinary\Transformation\Resize::fill(750, 450))
+            ->toUrl();
 
-        $image = $request->file('image');
-        $ext = $image->getClientOriginalExtension();
-        $imageName = time() . '-' . $id . '.' . $ext;
-
-        // save original
-        $image->move($baseDir, $imageName);
-
-        // create small thumbnail
-        $manager = new ImageManager(Driver::class);
-        $img = $manager->read($baseDir . '/' . $imageName);
-        $img->cover(750, 450);
-        $img->save($smallDir . '/' . $imageName);
-
-        $course->image = $imageName;
         $course->save();
-
-        // ✅ Return full URLs so frontend can show instantly
-        $course->course_image = url('uploads/course/' . $imageName);
-        $course->course_small_image = url('uploads/course/small/' . $imageName);
 
         return response()->json([
             'status' => 200,
             'data' => $course,
-            'message' => 'Course image has been uploaded successfully.'
-        ], 200);
-
+            'message' => 'Course image uploaded successfully.'
+        ]);
     } catch (\Throwable $e) {
-        \Log::error('saveCourseImage failed: ' . $e->getMessage());
-
+        \Log::error($e->getMessage());
         return response()->json([
-            'status' => 500,
-            'message' => 'Image upload failed on server',
-            'error' => $e->getMessage(),
-        ], 500);
+            'status'=>500,
+            'message'=>'Image upload failed on server',
+            'error'=>$e->getMessage()
+        ],500);
     }
 }
 
