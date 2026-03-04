@@ -134,12 +134,15 @@ class CourseController extends Controller
         ], 200);
     }
 
- public function saveCourseImage($id, Request $request)
+public function saveCourseImage($id, Request $request)
 {
     $course = Course::find($id);
 
-    if (!$course) {
-        return response()->json(['status' => 404, 'message' => 'Course not found.'], 404);
+    if ($course == null) {
+        return response()->json([
+            'status' => 404,
+            'message' => 'Course not found.'
+        ], 404);
     }
 
     if (!$this->canManageCourse($request, $course)) {
@@ -147,42 +150,72 @@ class CourseController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-       'image' => 'required|image|mimetypes:image/jpeg,image/png,image/jpg,image/gif,image/svg+xml'
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120' // 5MB
     ]);
 
     if ($validator->fails()) {
-        return response()->json(['status' => 422, 'errors' => $validator->errors()], 422);
+        return response()->json([
+            'status' => 422,
+            'errors' => $validator->errors()
+        ], 422);
     }
 
-    $image = $request->file('image');
+    try {
+        // ✅ Ensure folders exist (Render often doesn't have them)
+        $baseDir  = public_path('uploads/course');
+        $smallDir = public_path('uploads/course/small');
 
-    // ✅ Upload to Cloudinary
-    $uploaded = Cloudinary::upload($image->getRealPath(), [
-        'folder' => 'eduverse/courses',
-        'resource_type' => 'image',
-    ]);
+        if (!File::exists($baseDir)) {
+            File::makeDirectory($baseDir, 0755, true);
+        }
+        if (!File::exists($smallDir)) {
+            File::makeDirectory($smallDir, 0755, true);
+        }
 
-    $imageUrl = $uploaded->getSecurePath();
-    $publicId = $uploaded->getPublicId();
+        // delete old images if exist
+        if (!empty($course->image)) {
+            $oldBase  = $baseDir . '/' . $course->image;
+            $oldSmall = $smallDir . '/' . $course->image;
 
-    // ✅ small thumbnail (750x450)
-    $smallUrl = Cloudinary::getUrl($publicId, [
-        'width' => 750,
-        'height' => 450,
-        'crop' => 'fill',
-        'secure' => true,
-    ]);
+            if (File::exists($oldBase))  File::delete($oldBase);
+            if (File::exists($oldSmall)) File::delete($oldSmall);
+        }
 
-    // Save URLs (you need these columns)
-    $course->image_url = $imageUrl;
-    $course->image_small_url = $smallUrl;
-    $course->save();
+        $image = $request->file('image');
+        $ext = $image->getClientOriginalExtension();
+        $imageName = time() . '-' . $id . '.' . $ext;
 
-    return response()->json([
-        'status' => 200,
-        'data' => $course,
-        'message' => 'Course image uploaded successfully.'
-    ], 200);
+        // save original
+        $image->move($baseDir, $imageName);
+
+        // create small thumbnail
+        $manager = new ImageManager(Driver::class);
+        $img = $manager->read($baseDir . '/' . $imageName);
+        $img->cover(750, 450);
+        $img->save($smallDir . '/' . $imageName);
+
+        $course->image = $imageName;
+        $course->save();
+
+        // ✅ Return full URLs so frontend can show instantly
+        $course->course_image = url('uploads/course/' . $imageName);
+        $course->course_small_image = url('uploads/course/small/' . $imageName);
+
+        return response()->json([
+            'status' => 200,
+            'data' => $course,
+            'message' => 'Course image has been uploaded successfully.'
+        ], 200);
+
+    } catch (\Throwable $e) {
+        \Log::error('saveCourseImage failed: ' . $e->getMessage());
+
+        return response()->json([
+            'status' => 500,
+            'message' => 'Image upload failed on server',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
 }
 
     public function changeStatus($id, Request $request)
