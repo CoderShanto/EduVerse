@@ -4,29 +4,22 @@ import UserSidebar from '../../../common/UserSidebar'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { apiUrl } from '../../../common/Config'
-import { useAuth } from '../../../context/Auth'
 import toast from 'react-hot-toast'
 
 const CreateCourse = () => {
   const { register, handleSubmit, formState: { errors } } = useForm()
   const navigate = useNavigate()
-  const { user } = useAuth()
 
   const onSubmit = async (data) => {
     try {
-      const token = user?.token
-
-      if (!token) {
-        toast.error("You are not logged in!")
-        return
-      }
+      const token = localStorage.getItem("token")
 
       const res = await fetch(`${apiUrl}/courses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify(data)
       })
