@@ -13,11 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 
-
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
-use Illuminate\Support\Facades\Log;
 
 class CourseController extends Controller
 {
@@ -140,54 +138,75 @@ public function saveCourseImage($id, Request $request)
 {
     $course = Course::find($id);
 
-    if (!$course) {
-        return response()->json(['status' => 404, 'message' => 'Course not found.'], 404);
+    if ($course == null) {
+        return response()->json([
+            'status' => 404,
+            'message' => 'Course not found.'
+        ], 404);
     }
 
     if (!$this->canManageCourse($request, $course)) {
         return response()->json(['message' => 'Forbidden'], 403);
     }
 
-    $request->validate([
-        'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+    $validator = Validator::make($request->all(), [
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:5120' // 5MB
     ]);
 
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
     try {
-        // If you set CLOUDINARY_URL env correctly, this will work
-        $cloudinary = new \Cloudinary\Cloudinary();
+        // ✅ Ensure folders exist (Render often doesn't have them)
+        $baseDir  = public_path('uploads/course');
+        $smallDir = public_path('uploads/course/small');
 
-        // Upload original
-        $upload = $cloudinary->uploadApi()->upload(
-            $request->file('image')->getRealPath(),
-            [
-                'folder' => 'course_covers',
-                'public_id' => 'course_' . $course->id . '_' . time(),
-            ]
-        );
+        if (!File::exists($baseDir)) {
+            File::makeDirectory($baseDir, 0755, true);
+        }
+        if (!File::exists($smallDir)) {
+            File::makeDirectory($smallDir, 0755, true);
+        }
 
-        $fullUrl = $upload['secure_url'];
-        $publicId = $upload['public_id'];
+        // delete old images if exist
+        if (!empty($course->image)) {
+            $oldBase  = $baseDir . '/' . $course->image;
+            $oldSmall = $smallDir . '/' . $course->image;
 
-        // Create small/thumbnail URL (NO DB column named course_small_image)
-        $smallUrl = (string) $cloudinary->image($publicId)
-            ->resize(\Cloudinary\Transformation\Resize::fill(750, 450))
-            ->toUrl();
+            if (File::exists($oldBase))  File::delete($oldBase);
+            if (File::exists($oldSmall)) File::delete($oldSmall);
+        }
 
-        // ✅ Save to YOUR existing columns
-        $course->image_url = $fullUrl;
-        $course->image_small_url = $smallUrl;
+        $image = $request->file('image');
+        $ext = $image->getClientOriginalExtension();
+        $imageName = time() . '-' . $id . '.' . $ext;
 
-        // Optional: if you want image column also to hold the full URL:
-        // (If your frontend still uses `image`, this prevents breaking)
-        $course->image = $fullUrl;
+        // save original
+        $image->move($baseDir, $imageName);
 
+        // create small thumbnail
+        $manager = new ImageManager(Driver::class);
+        $img = $manager->read($baseDir . '/' . $imageName);
+        $img->cover(750, 450);
+        $img->save($smallDir . '/' . $imageName);
+
+        $course->image = $imageName;
         $course->save();
+
+        // ✅ Return full URLs so frontend can show instantly
+        $course->course_image = url('uploads/course/' . $imageName);
+        $course->course_small_image = url('uploads/course/small/' . $imageName);
 
         return response()->json([
             'status' => 200,
             'data' => $course,
-            'message' => 'Course image uploaded successfully.',
-        ]);
+            'message' => 'Course image has been uploaded successfully.'
+        ], 200);
+
     } catch (\Throwable $e) {
         \Log::error('saveCourseImage failed: ' . $e->getMessage());
 

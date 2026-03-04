@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\front;
-
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Chapter;
@@ -17,7 +17,6 @@ use Illuminate\Support\Facades\Validator;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
-use Illuminate\Support\Facades\Log;
 
 class CourseController extends Controller
 {
@@ -139,63 +138,46 @@ class CourseController extends Controller
 public function saveCourseImage($id, Request $request)
 {
     $course = Course::find($id);
-
-    if (!$course) {
-        return response()->json(['status' => 404, 'message' => 'Course not found.'], 404);
-    }
-
-    if (!$this->canManageCourse($request, $course)) {
-        return response()->json(['message' => 'Forbidden'], 403);
-    }
+    if (!$course) return response()->json(['status'=>404,'message'=>'Course not found.'],404);
+    if (!$this->canManageCourse($request, $course)) return response()->json(['message'=>'Forbidden'],403);
 
     $request->validate([
-        'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120'
     ]);
 
     try {
-        // If you set CLOUDINARY_URL env correctly, this will work
         $cloudinary = new \Cloudinary\Cloudinary();
 
-        // Upload original
         $upload = $cloudinary->uploadApi()->upload(
             $request->file('image')->getRealPath(),
             [
                 'folder' => 'course_covers',
-                'public_id' => 'course_' . $course->id . '_' . time(),
+                'public_id' => 'course_'.$course->id.'_'.time(),
             ]
         );
 
-        $fullUrl = $upload['secure_url'];
-        $publicId = $upload['public_id'];
+        // save full url
+        $course->image = $upload['secure_url'];
 
-        // Create small/thumbnail URL (NO DB column named course_small_image)
-        $smallUrl = (string) $cloudinary->image($publicId)
+        // optional: save small too (cloudinary transformation)
+        $course->course_small_image = $cloudinary->image($upload['public_id'])
             ->resize(\Cloudinary\Transformation\Resize::fill(750, 450))
             ->toUrl();
-
-        // ✅ Save to YOUR existing columns
-        $course->image_url = $fullUrl;
-        $course->image_small_url = $smallUrl;
-
-        // Optional: if you want image column also to hold the full URL:
-        // (If your frontend still uses `image`, this prevents breaking)
-        $course->image = $fullUrl;
 
         $course->save();
 
         return response()->json([
             'status' => 200,
             'data' => $course,
-            'message' => 'Course image uploaded successfully.',
+            'message' => 'Course image uploaded successfully.'
         ]);
     } catch (\Throwable $e) {
-        \Log::error('saveCourseImage failed: ' . $e->getMessage());
-
+        \Log::error($e->getMessage());
         return response()->json([
-            'status' => 500,
-            'message' => 'Image upload failed on server',
-            'error' => $e->getMessage(),
-        ], 500);
+            'status'=>500,
+            'message'=>'Image upload failed on server',
+            'error'=>$e->getMessage()
+        ],500);
     }
 }
 
