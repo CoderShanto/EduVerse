@@ -40,9 +40,7 @@ use Illuminate\Support\Facades\DB;
 //     ]);
 // });
 
-Route::get('/debug-db', function () {
-    return DB::connection()->getDatabaseName();
-});
+
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES (No Auth)
