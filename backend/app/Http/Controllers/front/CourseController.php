@@ -147,7 +147,7 @@ class CourseController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-        'image' => 'required|image|mimes:jpeg,png,jpg'
+       'image' => 'required|image|mimetypes:image/jpeg,image/png,image/jpg,image/gif,image/svg+xml'
     ]);
 
     if ($validator->fails()) {
