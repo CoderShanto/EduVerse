@@ -26,11 +26,7 @@ use App\Http\Controllers\Api\InstructorDashboardController;
 use App\Http\Controllers\Api\AdminAnalyticsController;
 use App\Http\Controllers\Api\AdminCourseController;
 use App\Http\Controllers\Api\front\AdminCategoryController;
-
-
-
-
-
+use Illuminate\Support\Facades\DB;
 
 // Route::get('/ssl-check', function () {
 //     return response()->json([
@@ -44,6 +40,9 @@ use App\Http\Controllers\Api\front\AdminCategoryController;
 //     ]);
 // });
 
+Route::get('/debug-db', function () {
+    return DB::connection()->getDatabaseName();
+});
 /*
 |--------------------------------------------------------------------------
 | PUBLIC ROUTES (No Auth)
