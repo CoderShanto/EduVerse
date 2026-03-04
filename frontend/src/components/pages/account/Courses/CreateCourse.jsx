@@ -4,7 +4,7 @@ import UserSidebar from '../../../common/UserSidebar'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { apiUrl } from '../../../common/Config'
-import { useAuth } from '../../../context/AuthContext'
+import { useAuth } from '../../../context/Auth'
 import toast from 'react-hot-toast'
 
 const CreateCourse = () => {
