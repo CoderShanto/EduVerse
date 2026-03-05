@@ -199,67 +199,55 @@ public function saveCourseImage($id, Request $request)
     }
 }
 
-    public function changeStatus($id, Request $request)
-    {
-        $course = Course::find($id);
+   public function changeStatus($id, Request $request)
+{
+    $course = Course::find($id);
 
-        if ($course == null) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'Course not found.'
-            ], 404);
-        }
+    if ($course == null) {
+        return response()->json([
+            'status' => 404,
+            'message' => 'Course not found.'
+        ], 404);
+    }
 
-        if (!$this->canManageCourse($request, $course)) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
+    if (!$this->canManageCourse($request, $course)) {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
 
-        $validator = Validator::make($request->all(), [
-            'status' => 'required|in:0,1'
-        ]);
+    $validator = Validator::make($request->all(), [
+        'status' => 'required|in:0,1'
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 422,
-                'errors' => $validator->errors()
-            ], 422);
-        }
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'errors' => $validator->errors()
+        ], 422);
+    }
 
-        // at least one chapter required
-        $chapters = Chapter::where('course_id', $id)->pluck('id')->toArray();
-        if (count($chapters) == 0) {
-            return response()->json([
-                'status' => 200,
-                'course' => $course,
-                'message' => 'At least one chapter is required to publish a course.'
-            ], 200);
-        }
-
-        // at least one active lesson with video required
-        $lessonCount = Lesson::whereIn('chapter_id', $chapters)
-            ->where('status', 1)
-            ->whereNotNull('video')
-            ->count();
-
-        if ($lessonCount == 0) {
-            return response()->json([
-                'status' => 200,
-                'course' => $course,
-                'message' => 'At least one lesson with video is required to publish this course.'
-            ], 200);
-        }
-
-        $course->status = (int)$request->status;
-        $course->save();
-
-        $message = ($course->status == 1) ? 'Course published successfully' : 'Course unpublished successfully';
-
+    // ✅ Optional: still require 1 chapter (keep this if you want)
+    $chapters = Chapter::where('course_id', $id)->pluck('id')->toArray();
+    if (count($chapters) == 0) {
         return response()->json([
             'status' => 200,
             'course' => $course,
-            'message' => $message
+            'message' => 'At least one chapter is required to publish a course.'
         ], 200);
     }
+
+    // ✅ Removed: video requirement
+
+    $course->status = (int)$request->status;
+    $course->save();
+
+    $message = ($course->status == 1) ? 'Course published successfully' : 'Course unpublished successfully';
+
+    return response()->json([
+        'status' => 200,
+        'course' => $course,
+        'message' => $message
+    ], 200);
+}
 
     public function destroy($id, Request $request)
     {
