@@ -2,28 +2,38 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { apiUrl } from "./Config";
 
-const Course = ({ course, customClasses }) => {
-  // 1) Build best possible image URL
+const Course = ({ course, customClasses = "" }) => {
+  // ✅ Prefer Cloudinary URLs first (your new system)
+  // ✅ Keep backwards compatibility for old DB values
   const raw =
-    course?.course_small_image ||
-    course?.image ||
-    course?.cover_image ||
+    course?.image_small_url || // ✅ new small url
+    course?.image_url ||       // ✅ new full url
+    course?.course_small_image || // old field (if any)
+    course?.cover_image ||        // fallback
+    course?.image ||              // could be url or filename
     "";
 
   const isHttp = typeof raw === "string" && /^https?:\/\//i.test(raw);
 
-  // If backend gave a local filename like "1753090572-1.jpg"
-  // try loading it from your backend public uploads folder
+  // If backend gave only filename (old local uploads system)
+  const backendBase = apiUrl.replace(/\/api$/, "");
   const localSmall = raw
-    ? `${apiUrl.replace(/\/api$/, "")}/uploads/course/small/${raw}`
+    ? `${backendBase}/uploads/course/small/${raw}`
     : "";
 
   const imgSrc = isHttp ? raw : localSmall;
 
-  // Fallback placeholder
   const placeholder = `https://placehold.co/600x350?text=${encodeURIComponent(
     course?.title || "Course"
   )}`;
+
+  // ✅ Show price even if 0
+  const price =
+    course?.price ??
+    course?.sell_price ??
+    course?.selling_price ??
+    course?.discounted_price ??
+    null;
 
   return (
     <div className={customClasses}>
@@ -32,9 +42,9 @@ const Course = ({ course, customClasses }) => {
           <img
             src={imgSrc || placeholder}
             alt={course?.title || "Course"}
-            className="img-fluid"
+            className="img-fluid w-100"
+            style={{ height: 190, objectFit: "cover" }}
             onError={(e) => {
-              // If local file fails, fallback to placeholder
               e.currentTarget.src = placeholder;
             }}
           />
@@ -94,7 +104,7 @@ const Course = ({ course, customClasses }) => {
                     <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z" />
                   </svg>
                 </div>
-                <div className="text ps-2">{course?.rating ?? 0}</div>
+                <div className="text ps-2">{course?.rating ?? "0.0"}</div>
               </div>
             </div>
           </div>
@@ -102,7 +112,7 @@ const Course = ({ course, customClasses }) => {
 
         <div className="card-footer bg-white">
           <div className="d-flex py-2 justify-content-between align-items-center">
-            {course?.price ? <div className="price">${course.price}</div> : <div />}
+            <div className="price">{price === null ? "" : `$${price}`}</div>
             <div className="add-to-cart">
               <Link to={`/detail/${course?.id}`} className="btn btn-primary">
                 Read More
