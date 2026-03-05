@@ -59,7 +59,7 @@ Route::get('/fetch-courses', [HomeController::class, 'courses']);
 Route::get('/fetch-course/{id}', [HomeController::class, 'course']);
 
 // portfolio public profile
-Route::get('/portfolio/{userId}', [PortfolioController::class, 'show']);
+Route::get('/portfolio/public/{userId}', [PortfolioController::class, 'show']);
 
 // optional debug route (remove in production)
 Route::get('/test-cloudinary', function () {
