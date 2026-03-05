@@ -38,8 +38,16 @@ const css = `
     --font-serif: 'Fraunces', serif;
   }
 
-  .dt-root { background: var(--bg); min-height: 100vh; font-family: var(--font); padding-bottom: 5rem; color: var(--text); position: relative; }
+  .dt-root {
+    background: var(--bg);
+    min-height: 100vh;
+    font-family: var(--font);
+    padding-bottom: 5rem;
+    color: var(--text);
+    position: relative;
+  }
 
+  /* Blobs */
   .dt-blob-wrap { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
   .dt-blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.22; }
   .dt-blob-1 { width: 600px; height: 600px; background: radial-gradient(circle,#c7d0ff,#a5b4fc); top: -200px; right: -150px; animation: blob-float 12s ease-in-out infinite alternate; }
@@ -48,6 +56,7 @@ const css = `
 
   .dt-inner { position: relative; z-index: 1; padding-top: 1.5rem; }
 
+  /* ── HERO BANNER ── */
   .dt-hero {
     background: linear-gradient(135deg,#0f1035 0%,#1e1463 40%,#3730a3 70%,#4f6ef7 100%);
     border-radius: 28px;
@@ -56,11 +65,13 @@ const css = `
     box-shadow: 0 30px 80px rgba(15,16,53,0.45);
     animation: dt-up 0.7s cubic-bezier(0.22,1,0.36,1) both;
   }
-  .dt-hero-shine { position: absolute; top: -80%; left: -30%; width: 70%; height: 200%;
+  .dt-hero-shine {
+    position: absolute; top: -80%; left: -30%; width: 70%; height: 200%;
     background: linear-gradient(105deg,rgba(255,255,255,0) 0%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0) 100%);
     transform: rotate(20deg); pointer-events: none;
   }
-  .dt-hero-grid { position: absolute; inset: 0; pointer-events: none;
+  .dt-hero-grid {
+    position: absolute; inset: 0; pointer-events: none;
     background-image: linear-gradient(rgba(255,255,255,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.04) 1px,transparent 1px);
     background-size: 40px 40px;
   }
@@ -71,6 +82,7 @@ const css = `
 
   .dt-hero-body { padding: 2.4rem 2.8rem 2.2rem; position: relative; z-index: 1; }
 
+  /* Breadcrumb */
   .dt-bc { font-size: 0.72rem; color: rgba(255,255,255,0.45); margin-bottom: 1.3rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
   .dt-bc a { color: rgba(255,255,255,0.65); text-decoration: none; font-weight: 600; transition: color 0.2s; }
   .dt-bc a:hover { color: #fff; }
@@ -98,6 +110,7 @@ const css = `
   }
   .dt-meta-chip b { color: rgba(255,255,255,0.9); font-weight: 700; }
 
+  /* ── STAT CARDS ROW ── */
   .dt-stats-row {
     display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.4rem;
     padding-top: 1.4rem; border-top: 1px solid rgba(255,255,255,0.1);
@@ -110,6 +123,7 @@ const css = `
   .dt-stat-val { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 700; color: #fff; }
   .dt-stat-label { font-size: 0.65rem; font-weight: 600; color: rgba(255,255,255,0.45); text-transform: uppercase; letter-spacing: 0.09em; }
 
+  /* ── SECTION CARDS ── */
   .dt-card {
     background: var(--white); border-radius: var(--radius);
     border: 1.5px solid var(--border); box-shadow: var(--shadow);
@@ -117,6 +131,13 @@ const css = `
     animation: dt-up 0.5s both;
     position: relative; overflow: hidden;
   }
+  .dt-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg,var(--blue),var(--purple));
+    border-radius: 99px 99px 0 0;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .dt-card:hover::before { opacity: 1; }
 
   .dt-section-title {
     font-size: 0.7rem; font-weight: 800; color: var(--text2);
@@ -125,22 +146,97 @@ const css = `
   }
   .dt-section-title::after { content: ''; flex: 1; height: 1.5px; background: var(--border); }
   .dt-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
   .dt-desc { font-size: 0.88rem; color: var(--text2); line-height: 1.8; white-space: pre-line; }
 
-  .dt-accordion .accordion-item { border: 1.5px solid var(--border) !important; border-radius: var(--radius-sm) !important; margin-bottom: 0.6rem; overflow: hidden; background: var(--white) !important; }
-  .dt-accordion .accordion-button { font-family: var(--font) !important; font-weight: 700 !important; font-size: 0.88rem !important; color: var(--text) !important; background: var(--bg) !important; border-radius: 0 !important; box-shadow: none !important; padding: 1rem 1.2rem !important; }
-  .dt-accordion .accordion-button:not(.collapsed) { background: var(--blue-light) !important; color: var(--blue) !important; }
-  .dt-lesson-item { display: flex; align-items: center; justify-content: space-between; gap: 0.8rem; padding: 0.75rem 1.2rem; border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .dt-check-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .dt-check-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 0.85rem; color: var(--text2); line-height: 1.5;
+    padding: 0.6rem 0.8rem; border-radius: 10px;
+    transition: background 0.15s;
+  }
+  .dt-check-item:hover { background: var(--bg); }
+  .dt-check-icon {
+    width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 900;
+  }
+  .dt-check-icon.green { background: var(--green-light); color: var(--green); }
+  .dt-check-icon.blue  { background: var(--blue-light);  color: var(--blue);  }
+
+  .dt-accordion .accordion-item {
+    border: 1.5px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
+    margin-bottom: 0.6rem; overflow: hidden;
+    background: var(--white) !important;
+  }
+  .dt-accordion .accordion-button {
+    font-family: var(--font) !important;
+    font-weight: 700 !important; font-size: 0.88rem !important;
+    color: var(--text) !important;
+    background: var(--bg) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important; padding: 1rem 1.2rem !important;
+  }
+  .dt-accordion .accordion-button:not(.collapsed) {
+    background: var(--blue-light) !important;
+    color: var(--blue) !important;
+  }
+  .dt-accordion .accordion-button::after { filter: none !important; }
+  .dt-chap-meta { font-size: 0.7rem; color: var(--text3); font-weight: 500; margin-left: auto; white-space: nowrap; }
+
+  .dt-lesson-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+    padding: 0.75rem 1.2rem; border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
   .dt-lesson-item:last-child { border-bottom: none; }
   .dt-lesson-item:hover { background: var(--blue-light); }
   .dt-lesson-left { display: flex; align-items: center; gap: 8px; font-size: 0.82rem; color: var(--text2); font-weight: 500; flex: 1; min-width: 0; }
   .dt-lesson-icon { color: var(--blue); flex-shrink: 0; }
-  .dt-preview-btn { font-size: 0.65rem; font-weight: 800; padding: 3px 10px; border-radius: 8px; background: var(--blue); color: #fff; text-decoration: none; cursor: pointer; border: none; transition: opacity 0.2s; white-space: nowrap; }
+  .dt-lesson-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+  .dt-preview-btn {
+    font-size: 0.65rem; font-weight: 800; padding: 3px 10px; border-radius: 8px;
+    background: var(--blue); color: #fff; text-decoration: none; cursor: pointer; border: none;
+    transition: opacity 0.2s; white-space: nowrap;
+  }
   .dt-preview-btn:hover { opacity: 0.8; color: #fff; }
+  .dt-lesson-dur { font-size: 0.7rem; color: var(--text3); font-weight: 600; }
+  .dt-curriculum-summary { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+  .dt-cur-chip {
+    font-size: 0.72rem; font-weight: 700; padding: 5px 12px; border-radius: 99px;
+    border: 1.5px solid var(--border); background: var(--bg); color: var(--text2);
+  }
+
+  .dt-review {
+    display: flex; gap: 1rem; padding: 1.1rem 0; border-bottom: 1.5px solid var(--border);
+    animation: dt-up 0.4s both;
+  }
+  .dt-review:last-child { border-bottom: none; padding-bottom: 0; }
+  .dt-review-avatar {
+    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+    background: linear-gradient(135deg,var(--blue),var(--purple));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 800; color: #fff;
+  }
+  .dt-review-name { font-size: 0.88rem; font-weight: 800; color: var(--text); }
+  .dt-review-date { font-size: 0.68rem; color: var(--text3); font-weight: 500; margin-left: 6px; }
+  .dt-review-comment { font-size: 0.82rem; color: var(--text2); line-height: 1.6; margin-top: 0.3rem; }
 
   .dt-sidebar { position: sticky; top: 82px; animation: dt-up 0.5s 0.1s both; }
-  .dt-enroll-card { background: var(--white); border-radius: var(--radius); border: 1.5px solid var(--border); box-shadow: 0 8px 40px rgba(79,110,247,0.14); overflow: hidden; }
-  .dt-course-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; transition: transform 0.4s ease; }
+  .dt-enroll-card {
+    background: var(--white); border-radius: var(--radius);
+    border: 1.5px solid var(--border); box-shadow: 0 8px 40px rgba(79,110,247,0.14);
+    overflow: hidden;
+  }
+  .dt-course-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
   .dt-enroll-card:hover .dt-course-thumb { transform: scale(1.04); }
   .dt-thumb-wrap { overflow: hidden; position: relative; }
   .dt-thumb-overlay {
@@ -148,11 +244,18 @@ const css = `
     background: linear-gradient(to bottom,transparent 50%,rgba(14,18,36,0.6) 100%);
     display: flex; align-items: flex-end; padding: 1rem;
   }
+
   .dt-enroll-body { padding: 1.4rem 1.5rem; }
   .dt-price-row { display: flex; align-items: baseline; gap: 0.8rem; margin-bottom: 0.3rem; }
-  .dt-price { font-family: var(--font-serif); font-size: 2.2rem; font-weight: 700; color: var(--text); line-height: 1; }
+  .dt-price {
+    font-family: var(--font-serif); font-size: 2.2rem; font-weight: 700; color: var(--text);
+    line-height: 1;
+  }
   .dt-cross-price { font-size: 1rem; color: var(--text3); text-decoration: line-through; font-weight: 500; }
-  .dt-discount-chip { font-size: 0.65rem; font-weight: 800; padding: 3px 9px; border-radius: 8px; background: var(--orange-light); border: 1.5px solid #fcd9c5; color: var(--orange); }
+  .dt-discount-chip {
+    font-size: 0.65rem; font-weight: 800; padding: 3px 9px; border-radius: 8px;
+    background: var(--orange-light); border: 1.5px solid #fcd9c5; color: var(--orange);
+  }
 
   .dt-enroll-btn {
     width: 100%; padding: 14px; border-radius: 14px; border: none; cursor: pointer;
@@ -163,16 +266,30 @@ const css = `
     transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
     margin-top: 1.1rem; letter-spacing: 0.02em;
   }
-  .dt-enroll-btn:hover { opacity: 0.88; transform: translateY(-2px); box-shadow: 0 16px 40px rgba(79,110,247,0.45); }
+  .dt-enroll-btn:hover {
+    opacity: 0.88; transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(79,110,247,0.45);
+  }
   .dt-enroll-btn:active { transform: translateY(0); }
 
   .dt-includes { padding: 1.2rem 1.5rem; border-top: 1.5px solid var(--border); }
   .dt-includes-title { font-size: 0.72rem; font-weight: 800; color: var(--text2); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.8rem; }
-  .dt-include-item { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--text2); font-weight: 500; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+  .dt-include-item {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.8rem; color: var(--text2); font-weight: 500;
+    padding: 0.5rem 0; border-bottom: 1px solid var(--border);
+  }
   .dt-include-item:last-child { border-bottom: none; }
-  .dt-include-icon { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+  .dt-include-icon {
+    width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 0.8rem;
+  }
 
-  .dt-guarantee { text-align: center; padding: 0.8rem 1.5rem; border-top: 1.5px solid var(--border); font-size: 0.72rem; color: var(--text3); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
+  .dt-guarantee {
+    text-align: center; padding: 0.8rem 1.5rem; border-top: 1.5px solid var(--border);
+    font-size: 0.72rem; color: var(--text3); font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
 
   @keyframes dt-up { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
 
@@ -182,59 +299,36 @@ const css = `
     .dt-hero-title { font-size: 1.7rem; }
     .dt-card { padding: 1.4rem 1.4rem; }
   }
+  @media (max-width: 576px) {
+    .dt-stats-row { gap: 0.5rem; }
+    .dt-stat { padding: 0.6rem 0.8rem; }
+    .dt-stat-val { font-size: 1rem; }
+  }
 `;
 
+// ✅ IMPORTANT: backend base without /api
 const backendBase = apiUrl.replace(/\/api\/?$/, "");
 
-const buildImgCandidates = (raw, title) => {
-  const placeholder = `https://placehold.co/900x500?text=${encodeURIComponent(title || "Course")}`;
+// ✅ robust image resolver (same idea as dashboard fix, but better)
+const resolveCourseImg = (raw, title) => {
+  const placeholder = `https://placehold.co/1200x675?text=${encodeURIComponent(title || "Course")}`;
 
-  if (!raw) return { candidates: [placeholder], placeholder };
+  if (!raw || typeof raw !== "string") return { src: placeholder, placeholder };
 
-  const s = String(raw).trim();
+  const v = raw.trim();
+  if (!v) return { src: placeholder, placeholder };
 
-  if (/^https?:\/\//i.test(s)) return { candidates: [s, placeholder], placeholder };
+  // already full url
+  if (/^https?:\/\//i.test(v)) return { src: v, placeholder };
 
-  if (s.startsWith("/uploads") || s.startsWith("/storage")) {
-    return { candidates: [`${backendBase}${s}`, placeholder], placeholder };
-  }
+  // already starts with a slash
+  if (v.startsWith("/")) return { src: `${backendBase}${v}`, placeholder };
 
-  if (s.startsWith("uploads/") || s.startsWith("storage/")) {
-    return { candidates: [`${backendBase}/${s}`, placeholder], placeholder };
-  }
+  // common storage paths (uploads/... or storage/...)
+  if (/^(uploads|storage)\//i.test(v)) return { src: `${backendBase}/${v}`, placeholder };
 
-  const candidates = [
-    `${backendBase}/uploads/course/small/${s}`,
-    `${backendBase}/uploads/course/${s}`,
-    `${backendBase}/uploads/courses/small/${s}`,
-    `${backendBase}/uploads/courses/${s}`,
-    `${backendBase}/storage/${s}`,
-    placeholder,
-  ];
-
-  return { candidates, placeholder };
-};
-
-const SmartImg = ({ raw, title, className = "", alt = "", style = {} }) => {
-  const { candidates } = useMemo(() => buildImgCandidates(raw, title), [raw, title]);
-  const [idx, setIdx] = useState(0);
-
-  useEffect(() => setIdx(0), [raw, title]);
-
-  return (
-    <img
-      src={candidates[idx]}
-      alt={alt || title || "Image"}
-      className={className}
-      style={style}
-      onError={() => {
-        setIdx((prev) => {
-          const next = prev + 1;
-          return next < candidates.length ? next : prev;
-        });
-      }}
-    />
-  );
+  // otherwise treat as filename (your backend uses uploads/course/small/)
+  return { src: `${backendBase}/uploads/course/small/${v}`, placeholder };
 };
 
 export const Detail = () => {
@@ -242,6 +336,7 @@ export const Detail = () => {
   const [freeLesson, setFreeLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [course, setCourse] = useState(null);
+
   const params = useParams();
   const navigate = useNavigate();
 
@@ -268,7 +363,11 @@ export const Detail = () => {
   const enrollCourse = async () => {
     await fetch(`${apiUrl}/enroll-course`, {
       method: "POST",
-      headers: { "Content-type": "application/json", Accept: "application/json", Authorization: `Bearer ${token}` },
+      headers: {
+        "Content-type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify({ course_id: course.id }),
     })
       .then(async (res) => ({ status: res.status, data: await res.json() }))
@@ -283,10 +382,27 @@ export const Detail = () => {
 
   useEffect(() => {
     if (params.id) fetchCourse();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
 
   const discountPct =
-    course?.cross_price && course?.price ? Math.round((1 - course.price / course.cross_price) * 100) : null;
+    course?.cross_price && course?.price
+      ? Math.round((1 - course.price / course.cross_price) * 100)
+      : null;
+
+  // ✅ compute sidebar image url safely
+  const courseThumb = useMemo(() => {
+    const raw =
+      course?.course_small_image ||
+      course?.image_small_url ||
+      course?.image_url ||
+      course?.image ||
+      course?.course_image ||
+      course?.cover_image ||
+      "";
+
+    return resolveCourseImg(raw, course?.title);
+  }, [course]);
 
   return (
     <Layout>
@@ -307,7 +423,7 @@ export const Detail = () => {
 
         {!loading && course && (
           <div className="container dt-inner pb-5">
-            {/* HERO */}
+            {/* ── HERO ── */}
             <div className="dt-hero">
               <div className="dt-hero-shine" />
               <div className="dt-hero-grid" />
@@ -360,9 +476,10 @@ export const Detail = () => {
               </div>
             </div>
 
-            {/* MAIN GRID */}
+            {/* ── MAIN GRID ── */}
             <div className="row g-4">
               <div className="col-lg-8">
+                {/* Overview */}
                 <div className="dt-card" style={{ animationDelay: "0.1s" }}>
                   <div className="dt-section-title">
                     <span className="dt-dot" style={{ background: "var(--blue)" }} />
@@ -371,45 +488,54 @@ export const Detail = () => {
                   <div className="dt-desc">{course.description}</div>
                 </div>
 
+                {/* What you'll learn */}
                 {course.outcomes?.length > 0 && (
                   <div className="dt-card" style={{ animationDelay: "0.15s" }}>
                     <div className="dt-section-title">
                       <span className="dt-dot" style={{ background: "var(--green)" }} />
                       What You Will Learn
                     </div>
-                    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                    <ul className="dt-check-list">
                       {course.outcomes.map((o, i) => (
-                        <li key={i} style={{ padding: "0.6rem 0.2rem", color: "var(--text2)" }}>
-                          ✅ {o.text}
+                        <li key={i} className="dt-check-item">
+                          <span className="dt-check-icon green">✓</span>
+                          <span>{o.text}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
 
+                {/* Requirements */}
                 {course.requirements?.length > 0 && (
                   <div className="dt-card" style={{ animationDelay: "0.2s" }}>
                     <div className="dt-section-title">
                       <span className="dt-dot" style={{ background: "var(--purple)" }} />
                       Requirements
                     </div>
-                    <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                    <ul className="dt-check-list">
                       {course.requirements.map((r, i) => (
-                        <li key={i} style={{ padding: "0.6rem 0.2rem", color: "var(--text2)" }}>
-                          ➜ {r.text}
+                        <li key={i} className="dt-check-item">
+                          <span className="dt-check-icon blue">→</span>
+                          <span>{r.text}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
                 )}
 
+                {/* Curriculum */}
                 {course.chapters?.length > 0 && (
                   <div className="dt-card" style={{ animationDelay: "0.25s" }}>
                     <div className="dt-section-title">
                       <span className="dt-dot" style={{ background: "var(--yellow)" }} />
                       Course Curriculum
                     </div>
-
+                    <div className="dt-curriculum-summary">
+                      <span className="dt-cur-chip">📖 {course.chapters_count} Chapters</span>
+                      <span className="dt-cur-chip">🎬 {course.total_lessons} Lessons</span>
+                      <span className="dt-cur-chip">⏱ {convertMinutesToHours(course.total_duration)}</span>
+                    </div>
                     <Accordion defaultActiveKey="0" className="dt-accordion">
                       {course.chapters.map((chapter, index) => (
                         <Accordion.Item eventKey={String(index)} key={chapter.id || index}>
@@ -425,11 +551,10 @@ export const Detail = () => {
                             >
                               {chapter.title}
                             </span>
-                            <span style={{ fontSize: "0.7rem", color: "var(--text3)", fontWeight: 500, marginLeft: "auto" }}>
+                            <span className="dt-chap-meta">
                               {chapter.lessons_count} lessons · {convertMinutesToHours(chapter.lessons_sum_duration)}
                             </span>
                           </Accordion.Header>
-
                           <Accordion.Body style={{ padding: 0 }}>
                             {chapter.lessons?.map((lesson) => (
                               <div key={lesson.id} className="dt-lesson-item">
@@ -439,15 +564,13 @@ export const Detail = () => {
                                     {lesson.title}
                                   </span>
                                 </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                <div className="dt-lesson-right">
                                   {lesson.is_free_preview === "yes" && (
                                     <button className="dt-preview-btn" onClick={() => handleShow(lesson)}>
                                       ▶ Preview
                                     </button>
                                   )}
-                                  <span style={{ fontSize: "0.7rem", color: "var(--text3)", fontWeight: 600 }}>
-                                    {convertMinutesToHours(lesson.duration)}
-                                  </span>
+                                  <span className="dt-lesson-dur">{convertMinutesToHours(lesson.duration)}</span>
                                 </div>
                               </div>
                             ))}
@@ -457,15 +580,48 @@ export const Detail = () => {
                     </Accordion>
                   </div>
                 )}
+
+                {/* Reviews */}
+                {course.reviews?.length > 0 && (
+                  <div className="dt-card" style={{ animationDelay: "0.3s" }}>
+                    <div className="dt-section-title">
+                      <span className="dt-dot" style={{ background: "var(--orange)" }} />
+                      Student Reviews
+                    </div>
+                    <p style={{ fontSize: "0.82rem", color: "var(--text2)", marginBottom: "1rem" }}>
+                      What our students say about this course
+                    </p>
+                    {course.reviews.map((review, idx) => (
+                      <div key={review.id} className="dt-review" style={{ animationDelay: `${0.3 + idx * 0.05}s` }}>
+                        <div className="dt-review-avatar">{(review.user?.name || "U")[0].toUpperCase()}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div>
+                            <span className="dt-review-name">{review.user?.name}</span>
+                            <span className="dt-review-date">{review.created_at}</span>
+                          </div>
+                          <Rating readonly initialValue={parseFloat(review.rating || 5)} size={15} />
+                          <p className="dt-review-comment">{review.comment}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              {/* SIDEBAR */}
+              {/* ── SIDEBAR ── */}
               <div className="col-lg-4">
                 <div className="dt-sidebar">
                   <div className="dt-enroll-card">
-                    {/* ✅ Thumbnail FIXED HERE */}
+                    {/* Thumbnail */}
                     <div className="dt-thumb-wrap">
-                      <SmartImg raw={course.course_small_image || course.image || course.thumbnail || ""} title={course.title} alt={course.title} className="dt-course-thumb" />
+                      <img
+                        src={courseThumb.src}
+                        alt={course.title}
+                        className="dt-course-thumb"
+                        onError={(e) => {
+                          e.currentTarget.src = courseThumb.placeholder;
+                        }}
+                      />
                       <div className="dt-thumb-overlay">
                         {discountPct && (
                           <span
@@ -484,24 +640,24 @@ export const Detail = () => {
                       </div>
                     </div>
 
+                    {/* Price + enroll */}
                     <div className="dt-enroll-body">
                       <div className="dt-price-row">
                         <span className="dt-price">${course.price}</span>
                         {course.cross_price && <span className="dt-cross-price">${course.cross_price}</span>}
                         {discountPct && <span className="dt-discount-chip">{discountPct}% off</span>}
                       </div>
-
                       {course.cross_price && (
                         <p style={{ fontSize: "0.72rem", color: "var(--orange)", fontWeight: 700, margin: "0.2rem 0 0" }}>
                           ⚡ Limited time offer
                         </p>
                       )}
-
                       <button onClick={enrollCourse} className="dt-enroll-btn">
                         🎓 Enroll Now
                       </button>
                     </div>
 
+                    {/* What's included */}
                     <div className="dt-includes">
                       <div className="dt-includes-title">This course includes</div>
                       {[
@@ -520,6 +676,7 @@ export const Detail = () => {
                       ))}
                     </div>
 
+                    {/* Guarantee */}
                     <div className="dt-guarantee">🔒 30-Day Money-Back Guarantee</div>
                   </div>
                 </div>
