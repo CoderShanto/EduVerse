@@ -4,8 +4,8 @@ import UserSidebar from "../../common/UserSidebar";
 import EditCourse from "../../common/EditCourse";
 import Layout from "../../common/Layout";
 import { apiUrl } from "../../common/Config";
-import toast from "react-hot-toast";
 import { AuthContext } from "../../context/Auth";
+import toast from "react-hot-toast";
 
 const MyCourses = () => {
   const { user } = useContext(AuthContext);
@@ -19,7 +19,7 @@ const MyCourses = () => {
       setLoading(true);
 
       if (!authToken) {
-        toast.error("Please login again");
+        toast.error("Login required");
         setCourses([]);
         return;
       }
@@ -54,11 +54,11 @@ const MyCourses = () => {
     if (!confirm("Are you sure you want to delete this course?")) return;
 
     const originalCourses = [...courses];
-    setCourses((prev) => prev.filter((course) => course.id !== id));
+    setCourses((prev) => prev.filter((c) => c.id !== id));
 
     try {
       if (!authToken) {
-        toast.error("Please login again");
+        toast.error("Login required");
         setCourses(originalCourses);
         return;
       }
