@@ -124,34 +124,19 @@ const css = `
   @media (max-width: 768px) { .sd-greeting { flex-direction: column; text-align: center; align-items: center; } .sd-clock { text-align: center; } .sd-greeting-left { flex-direction: column; align-items: center; } }
 `;
 
-// ✅ backend base: remove /api or /api/
+// ✅ FIX: remove /api and /api/ safely
 const backendBase = apiUrl.replace(/\/api\/?$/, "");
 
-// ✅ FIXED resolver: handles filename, relative path, "/uploads/..", "uploads/..", full http URL
+// ✅ FIX: always return a usable src (placeholder)
 const resolveImg = (raw, title) => {
   const placeholder = `https://placehold.co/200x200?text=${encodeURIComponent(title || "Course")}`;
 
-  if (!raw || typeof raw !== "string") return { src: placeholder, placeholder };
+  if (!raw) return { src: placeholder, placeholder };
 
-  const trimmed = raw.trim();
-  if (!trimmed) return { src: placeholder, placeholder };
+  const isHttp = typeof raw === "string" && /^https?:\/\//i.test(raw);
+  const localSmall = `${backendBase}/uploads/course/small/${raw}`;
 
-  const isHttp = /^https?:\/\//i.test(trimmed);
-  if (isHttp) return { src: trimmed, placeholder };
-
-  // If API returns "/uploads/..." or "/storage/..." => backendBase + it
-  if (trimmed.startsWith("/")) return { src: `${backendBase}${trimmed}`, placeholder };
-
-  // If API returns "uploads/..." or "storage/..." => backendBase + "/" + it
-  if (/^(uploads|storage)\//i.test(trimmed)) return { src: `${backendBase}/${trimmed}`, placeholder };
-
-  // If API already returns "course/small/xyz.jpg" or includes uploads path somewhere
-  if (trimmed.includes("uploads/") || trimmed.includes("storage/")) {
-    return { src: `${backendBase}/${trimmed.replace(/^\/+/, "")}`, placeholder };
-  }
-
-  // Default: filename only => assume uploads/course/small/<filename>
-  return { src: `${backendBase}/uploads/course/small/${trimmed}`, placeholder };
+  return { src: isHttp ? raw : localSmall, placeholder };
 };
 
 const getTimeGreeting = () => {
@@ -190,18 +175,6 @@ const LiveClock = () => {
     </div>
   );
 };
-
-// ✅ helpers for progress_courses (often nested)
-const getProgressTitle = (c) => c?.title || c?.course_title || c?.course?.title || "Course";
-const getProgressImgRaw = (c) =>
-  c?.image_small_url ||
-  c?.image_url ||
-  c?.course_small_image ||
-  c?.image ||
-  c?.course?.course_small_image ||
-  c?.course?.image ||
-  c?.course?.cover_image ||
-  "";
 
 const StudentDashboard = () => {
   const { user } = useContext(AuthContext);
@@ -352,18 +325,22 @@ const StudentDashboard = () => {
                             {progressCourses.map((c, i) => {
                               const pct = Number.isFinite(Number(c.progress)) ? Number(c.progress) : 0;
 
-                              const title = getProgressTitle(c);
-                              const rawImg = getProgressImgRaw(c);
-                              const { src, placeholder } = resolveImg(rawImg, title);
+                              // ✅ FIX: include DB columns used in course lists + backend filenames
+                              const rawImg =
+                                c.image_small_url ||
+                                c.image_url ||
+                                c.course_small_image ||
+                                c.image ||
+                                "";
 
-                              const courseId = c?.course_id || c?.course?.id;
+                              const { src, placeholder } = resolveImg(rawImg, c.title);
 
                               return (
-                                <div key={`${courseId || "course"}-${i}`} className="sd-course-row">
+                                <div key={`${c.course_id}-${i}`} className="sd-course-row">
                                   <div className="sd-course-thumb">
                                     <img
                                       src={src}
-                                      alt={title}
+                                      alt={c.title || "Course"}
                                       onError={(ev) => {
                                         ev.currentTarget.src = placeholder;
                                       }}
@@ -371,15 +348,15 @@ const StudentDashboard = () => {
                                   </div>
 
                                   <div className="sd-course-info">
-                                    <div className="sd-course-name">{title}</div>
+                                    <div className="sd-course-name">{c.title || "Untitled course"}</div>
                                     <div className="sd-prog-track">
                                       <div className="sd-prog-fill" style={{ width: `${pct}%` }} />
                                     </div>
                                     <div className="sd-course-pct">{pct}% complete</div>
                                   </div>
 
-                                  {courseId && (
-                                    <Link to={`${WATCH_ROUTE_BASE}/${courseId}`} className="sd-continue-btn">
+                                  {c.course_id && (
+                                    <Link to={`${WATCH_ROUTE_BASE}/${c.course_id}`} className="sd-continue-btn">
                                       Continue →
                                     </Link>
                                   )}
@@ -400,7 +377,7 @@ const StudentDashboard = () => {
                     </div>
                   </div>
 
-                  {/* rest unchanged */}
+                  {/* ✅ keep rest same */}
                   <div className="row g-3 mb-4">
                     <div className="col-md-6">
                       <div className="sd-card">
