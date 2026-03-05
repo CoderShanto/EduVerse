@@ -73,7 +73,7 @@ const AdminAllCourses = () => {
     return v === "1" || v === "active" || v === "published" || v === "true";
   };
 
-  // ✅ IMPORTANT: Your backend returns { status:200, courses:[...] }
+  // ✅ IMPORTANT: backend returns { status:200, courses:[...] }
   const fetchCourses = async () => {
     try {
       setLoading(true);
@@ -158,13 +158,12 @@ const AdminAllCourses = () => {
     }
   };
 
-  // ✅ Toggle Featured from Admin list
   const toggleFeatured = async (course) => {
     try {
       setFeatureChangingId(course.id);
 
       const currentlyFeatured = isFeaturedValue(course.is_featured);
-      const newVal = currentlyFeatured ? 0 : 1; // backend expects 0/1
+      const newVal = currentlyFeatured ? 0 : 1;
 
       const res = await fetch(`${apiUrl}/change-course-featured/${course.id}`, {
         method: "POST",
@@ -181,12 +180,9 @@ const AdminAllCourses = () => {
       if (result?.status === 200) {
         toast.success(newVal === 1 ? "⭐ Marked Featured" : "Removed from Featured");
 
-        // Update local state (keep compatibility with yes/no display)
         setCourses((prev) =>
           prev.map((c) =>
-            c.id === course.id
-              ? { ...c, is_featured: newVal === 1 ? "yes" : "no" }
-              : c
+            c.id === course.id ? { ...c, is_featured: newVal === 1 ? "yes" : "no" } : c
           )
         );
       } else {
@@ -303,9 +299,26 @@ const AdminAllCourses = () => {
                           </th>
                         </tr>
                       </thead>
+
                       <tbody>
                         {filtered.map((c) => {
-                          const img = c.course_small_image || c.image_url || c.image || "";
+                          // ✅ FIX: support new columns + old columns + filename fallback
+                          const raw =
+                            c.image_small_url ||
+                            c.image_url ||
+                            c.course_small_image ||
+                            c.image ||
+                            "";
+
+                          const isHttp = typeof raw === "string" && /^https?:\/\//i.test(raw);
+                          const backendBase = apiUrl.replace(/\/api$/, "");
+                          const localSmall = raw ? `${backendBase}/uploads/course/small/${raw}` : "";
+                          const imgSrc = isHttp ? raw : localSmall;
+
+                          const placeholder = `https://placehold.co/200x150?text=${encodeURIComponent(
+                            c.title || "Course"
+                          )}`;
+
                           const createdAt = c.created_at ? new Date(c.created_at).toLocaleString() : "—";
                           const featuredNow = isFeaturedValue(c.is_featured);
 
@@ -313,7 +326,13 @@ const AdminAllCourses = () => {
                             <tr key={c.id} className="aac-row">
                               <td>
                                 <div className="aac-cover">
-                                  {img ? <img src={img} alt="" /> : <span style={{ fontSize: 18 }}>📘</span>}
+                                  <img
+                                    src={imgSrc || placeholder}
+                                    alt={c.title || "Course"}
+                                    onError={(e) => {
+                                      e.currentTarget.src = placeholder;
+                                    }}
+                                  />
                                 </div>
                               </td>
 
