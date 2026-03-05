@@ -41,6 +41,7 @@ const css = `
   .sd-bc { font-size: 0.75rem; color: var(--text3); padding: 1.5rem 0 1rem; display: flex; align-items: center; gap: 0.4rem; font-weight: 500; }
   .sd-bc a { color: var(--blue); text-decoration: none; }
   .sd-bc a:hover { text-decoration: underline; }
+
   .sd-greeting { background: linear-gradient(135deg, #4f6ef7 0%, #7c5cbf 60%, #a855f7 100%); border-radius: 28px; padding: 2.2rem 2.4rem; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; margin-bottom: 1.8rem; position: relative; overflow: hidden; box-shadow: 0 20px 60px rgba(79,110,247,0.35); animation: sd-up 0.6s cubic-bezier(0.22,1,0.36,1) both; }
   .sd-greeting::before { content: ''; position: absolute; top: -60%; left: -20%; width: 60%; height: 200%; background: linear-gradient(105deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0) 100%); transform: rotate(25deg); pointer-events: none; }
   .sd-greeting-deco { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.15); pointer-events: none; }
@@ -51,6 +52,7 @@ const css = `
   @keyframes pop-in { from { opacity: 0; transform: scale(0.5) rotate(-15deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
   .sd-greeting-text h2 { font-size: 1.45rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.02em; }
   .sd-greeting-text p { font-size: 0.82rem; color: rgba(255,255,255,0.65); margin: 0.3rem 0 0; }
+
   .sd-clock { z-index: 1; text-align: right; flex-shrink: 0; }
   .sd-clock-time { font-family: var(--font-serif); font-size: 2.6rem; font-weight: 700; color: #fff; line-height: 1; letter-spacing: -0.03em; }
   .sd-clock-ampm { font-family: var(--font-serif); font-size: 1.2rem; font-weight: 400; color: rgba(255,255,255,0.7); margin-left: 4px; vertical-align: baseline; }
@@ -60,6 +62,7 @@ const css = `
   .sd-live-badge { display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 99px; padding: 3px 10px; font-size: 0.65rem; font-weight: 700; color: #fff; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 0.5rem; }
   .sd-live-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 8px #4ade80; animation: live-pulse 1.6s ease-in-out infinite; }
   @keyframes live-pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
   .sd-stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.2rem; margin-bottom: 1.6rem; }
   .sd-stat-card { background: var(--white); border-radius: var(--radius); padding: 1.6rem 1.5rem; border: 1.5px solid var(--border); box-shadow: var(--shadow); position: relative; overflow: hidden; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.3s; animation: sd-up 0.5s both; display: flex; flex-direction: column; }
   .sd-stat-card:nth-child(1){animation-delay:0.1s;}
@@ -82,21 +85,26 @@ const css = `
   .c-orange .sd-stat-link { color: var(--orange); }
   .c-green .sd-stat-link { color: var(--green); }
   .sd-stat-link:hover { gap: 10px; }
+
   .sd-card { background: var(--white); border-radius: var(--radius); padding: 1.6rem; border: 1.5px solid var(--border); box-shadow: var(--shadow); height: 100%; animation: sd-up 0.5s 0.3s both; position: relative; overflow: hidden; }
   .sd-section-title { font-size: 0.72rem; font-weight: 800; color: var(--text2); text-transform: uppercase; letter-spacing: 0.12em; margin: 0 0 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
   .sd-section-title::after { content: ''; flex: 1; height: 1.5px; background: var(--border); }
   .sd-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
   .sd-course-row { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border); }
   .sd-course-row:last-of-type { border-bottom: none; }
-  .sd-course-thumb { width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0; overflow: hidden; background: var(--blue-light); border: 1.5px solid var(--border); }
+  .sd-course-thumb { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; overflow: hidden; background: var(--blue-light); border: 1.5px solid var(--border); }
   .sd-course-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+
   .sd-course-info { flex: 1; min-width: 0; }
   .sd-course-name { font-size: 0.85rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sd-course-pct { font-size: 0.7rem; color: var(--text3); margin-top: 0.15rem; font-weight: 500; }
   .sd-prog-track { background: var(--bg); border-radius: 99px; height: 5px; overflow: hidden; margin-top: 0.4rem; }
   .sd-prog-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue), #818cf8); transition: width 0.8s cubic-bezier(0.25,1,0.5,1); }
+
   .sd-continue-btn { font-size: 0.72rem; font-weight: 700; color: var(--blue); text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border: 1.5px solid var(--blue-mid); border-radius: 10px; background: var(--blue-light); transition: all 0.2s; }
   .sd-continue-btn:hover { background: var(--blue); color: #fff; border-color: var(--blue); gap: 8px; }
+
   .sd-list-row { background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 0.9rem 1rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 0.8rem; transition: border-color 0.2s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.2s; }
   .sd-list-row:hover { border-color: #c7d0ff; transform: translateX(5px); box-shadow: 0 4px 20px rgba(79,110,247,0.1); }
   .sd-list-row-title { font-size: 0.84rem; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -116,64 +124,78 @@ const css = `
   @media (max-width: 768px) { .sd-greeting { flex-direction: column; text-align: center; align-items: center; } .sd-clock { text-align: center; } .sd-greeting-left { flex-direction: column; align-items: center; } }
 `;
 
-// ====================================================================
-// ✅ THE REAL ROOT CAUSE:
-// Your backend returns course_small_image as a corrupted double-URL:
-// "http://yourserver.com/uploads/course/small/https://res.cloudinary.com/..."
-//
-// This function extracts the REAL embedded URL (the second https://)
-// e.g. input:  "http://server.com/uploads/course/small/https://res.cloudinary.com/x.webp"
-//      output: "https://res.cloudinary.com/x.webp"   ← this is what the browser needs
-// ====================================================================
-const cleanImageUrl = (raw) => {
-  if (!raw) return "";
-  const s = String(raw).trim();
-  // Find the index of a second "http" occurrence (after position 5 to skip the first one)
-  const secondHttpIdx = s.indexOf("http", 5);
-  if (secondHttpIdx !== -1) {
-    return s.slice(secondHttpIdx); // extract from the second http onwards
-  }
-  return s; // already clean — return as-is
-};
-
+// ✅ strip /api or /api/ — matches both
 const backendBase = apiUrl.replace(/\/api\/?$/, "");
 
-// Build fallback candidates — always clean the URL first
+// ✅ returns a plain array of candidates (same pattern as Detail.js)
 const buildImgCandidates = (raw, title) => {
   const placeholder = `https://placehold.co/200x200?text=${encodeURIComponent(title || "Course")}`;
+
   if (!raw) return [placeholder];
 
-  const s = cleanImageUrl(raw); // ← strips the broken prefix
-  if (!s) return [placeholder];
+  const s = String(raw).trim();
 
+  // Full URL already
   if (/^https?:\/\//i.test(s)) return [s, placeholder];
-  if (s.startsWith("/uploads") || s.startsWith("/storage")) return [`${backendBase}${s}`, placeholder];
-  if (s.startsWith("uploads/") || s.startsWith("storage/")) return [`${backendBase}/${s}`, placeholder];
 
+  // Rooted path like /uploads/... or /storage/...
+  if (s.startsWith("/uploads") || s.startsWith("/storage")) {
+    return [`${backendBase}${s}`, placeholder];
+  }
+
+  // Relative path like uploads/course/...
+  if (s.startsWith("uploads/") || s.startsWith("storage/")) {
+    return [`${backendBase}/${s}`, placeholder];
+  }
+
+  // ✅ Bare filename (e.g. "1759309572-1.jpg") — try all common upload paths
   return [
     `${backendBase}/uploads/course/small/${s}`,
     `${backendBase}/uploads/course/${s}`,
     `${backendBase}/uploads/courses/small/${s}`,
     `${backendBase}/uploads/courses/${s}`,
+    `${backendBase}/storage/uploads/course/small/${s}`,
+    `${backendBase}/storage/${s}`,
     placeholder,
   ];
 };
 
-// SmartImg: tries each candidate in order on error
+// ✅ SmartImg: tries each candidate in order on error — same as Detail.js
 const SmartImg = ({ raw, title, className = "", style = {}, alt = "" }) => {
   const candidates = useMemo(() => buildImgCandidates(raw, title), [raw, title]);
   const [idx, setIdx] = useState(0);
+
+  // Reset index whenever the image source changes
   useEffect(() => setIdx(0), [raw, title]);
+
   return (
     <img
       src={candidates[idx] || candidates[0]}
       alt={alt || title || "Course"}
       className={className}
       style={style}
-      onError={() => setIdx((prev) => (prev + 1 < candidates.length ? prev + 1 : prev))}
+      onError={() =>
+        setIdx((prev) => (prev + 1 < candidates.length ? prev + 1 : prev))
+      }
     />
   );
 };
+
+// ✅ Extract raw image from a progress course object
+// Checks both flat keys and nested course.* keys to handle any API shape
+const getRawProgressImage = (c) =>
+  c?.image_small_url ||
+  c?.image_url ||
+  c?.course_small_image ||
+  c?.course_image ||
+  c?.thumbnail ||
+  c?.image ||                   // ← your DB stores bare filename here
+  c?.course?.image_small_url ||
+  c?.course?.image_url ||
+  c?.course?.course_small_image ||
+  c?.course?.thumbnail ||
+  c?.course?.image ||
+  "";
 
 const getTimeGreeting = () => {
   const h = new Date().getHours();
@@ -189,15 +211,18 @@ const LiveClock = () => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
-  const rawH = now.getHours();
-  const ampm = rawH >= 12 ? "PM" : "AM";
-  const hour = rawH % 12 === 0 ? 12 : rawH % 12;
+
+  const raw = now.getHours();
+  const ampm = raw >= 12 ? "PM" : "AM";
+  const hour = raw % 12 === 0 ? 12 : raw % 12;
   const mm = String(now.getMinutes()).padStart(2, "0");
   const ss = String(now.getSeconds()).padStart(2, "0");
+
   return (
     <div className="sd-clock">
       <div className="sd-clock-time">
-        {hour}:{mm}<span className="sd-secs">:{ss}</span>
+        {hour}:{mm}
+        <span className="sd-secs">:{ss}</span>
         <span className="sd-clock-ampm">{ampm}</span>
       </div>
       <div className="sd-clock-date">
@@ -214,7 +239,13 @@ const StudentDashboard = () => {
   const authToken = user?.token || user?.user?.token || configToken;
   const userName = user?.user?.name || user?.name || "Student";
   const initials = useMemo(
-    () => (userName || "Student").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase(),
+    () =>
+      (userName || "Student")
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase(),
     [userName]
   );
 
@@ -233,6 +264,7 @@ const StudentDashboard = () => {
     const loadAll = async () => {
       try {
         setLoading(true);
+
         const sR = await fetch(`${apiUrl}/dashboard/stats`, {
           headers: { Accept: "application/json", Authorization: `Bearer ${authToken}` },
         });
@@ -257,6 +289,7 @@ const StudentDashboard = () => {
         setLoading(false);
       }
     };
+
     if (authToken) loadAll();
     else setLoading(false);
   }, [authToken]);
@@ -264,11 +297,13 @@ const StudentDashboard = () => {
   return (
     <Layout>
       <style>{css}</style>
+
       <div className="sd-blob-wrap">
         <div className="sd-blob sd-blob-1" />
         <div className="sd-blob sd-blob-2" />
         <div className="sd-blob sd-blob-3" />
       </div>
+
       <div className="sd-root">
         <div className="container sd-inner">
           <nav className="sd-bc">
@@ -276,10 +311,12 @@ const StudentDashboard = () => {
             <span>›</span>
             <span>Student Dashboard</span>
           </nav>
+
           <div className="row">
             <div className="col-lg-3 account-sidebar mb-4">
               <UserSidebar />
             </div>
+
             <div className="col-lg-9">
               <div className="sd-greeting mb-4">
                 <div className="sd-greeting-deco d1" />
@@ -296,7 +333,9 @@ const StudentDashboard = () => {
 
               {loading ? (
                 <div className="sd-stats-row mb-4">
-                  {[1, 2, 3].map((i) => <div key={i} className="sd-skeleton" />)}
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="sd-skeleton" />
+                  ))}
                 </div>
               ) : (
                 <>
@@ -308,18 +347,22 @@ const StudentDashboard = () => {
                       <div className="sd-label">Enrolled Courses</div>
                       <Link to="/account/student/my-learning" className="sd-stat-link">View All →</Link>
                     </div>
+
                     <div className="sd-stat-card c-orange" data-num={completed}>
                       <div className="sd-stat-icon">✅</div>
                       <div className="sd-num">{completed}</div>
                       <div className="sd-label">Completed</div>
                       <Link to="/account/certificates" className="sd-stat-link">Certificates →</Link>
                     </div>
+
                     <div className="sd-stat-card c-green" data-num={streak}>
                       <div className="sd-stat-icon">🔥</div>
                       <div className="sd-num">{streak}</div>
                       <div className="sd-label">Day Streak</div>
                       {streak > 0 ? (
-                        <span className="sd-stat-link" style={{ cursor: "default", color: "var(--text3)" }}>Keep it going!</span>
+                        <span className="sd-stat-link" style={{ cursor: "default", color: "var(--text3)" }}>
+                          Keep it going!
+                        </span>
                       ) : (
                         <Link to="/account/student/my-learning" className="sd-stat-link">Start today →</Link>
                       )}
@@ -334,18 +377,26 @@ const StudentDashboard = () => {
                           <span className="sd-dot" style={{ background: "var(--blue)" }} />
                           Course Progress
                         </p>
+
                         {progressCourses.length > 0 ? (
                           <>
                             {progressCourses.map((c, i) => {
                               const pct = Number.isFinite(Number(c.progress)) ? Number(c.progress) : 0;
-                              // ✅ course_small_image is the correct field name from your API
-                              // cleanImageUrl() inside buildImgCandidates will fix the corrupted URL
-                              const rawImg = c.course_small_image || c.image || "";
+
+                              // ✅ Use helper to extract raw image from any API shape
+                              const rawImg = getRawProgressImage(c);
+
                               return (
-                                <div key={`${c.course_id}-${i}`} className="sd-course-row">
+                                <div key={`${c.course_id || c.id}-${i}`} className="sd-course-row">
                                   <div className="sd-course-thumb">
-                                    <SmartImg raw={rawImg} title={c.title} alt={c.title || "Course"} />
+                                    {/* ✅ SmartImg tries all candidate paths automatically */}
+                                    <SmartImg
+                                      raw={rawImg}
+                                      title={c.title}
+                                      alt={c.title || "Course"}
+                                    />
                                   </div>
+
                                   <div className="sd-course-info">
                                     <div className="sd-course-name">{c.title || "Untitled course"}</div>
                                     <div className="sd-prog-track">
@@ -353,21 +404,27 @@ const StudentDashboard = () => {
                                     </div>
                                     <div className="sd-course-pct">{pct}% complete</div>
                                   </div>
-                                  {c.course_id && (
-                                    <Link to={`${WATCH_ROUTE_BASE}/${c.course_id}`} className="sd-continue-btn">
+
+                                  {(c.course_id || c.id) && (
+                                    <Link
+                                      to={`${WATCH_ROUTE_BASE}/${c.course_id || c.id}`}
+                                      className="sd-continue-btn"
+                                    >
                                       Continue →
                                     </Link>
                                   )}
                                 </div>
                               );
                             })}
+
                             <Link to="/account/student/my-learning" className="sd-hub-link" style={{ marginTop: "0.8rem" }}>
                               All courses →
                             </Link>
                           </>
                         ) : (
                           <div className="sd-muted">
-                            No course progress yet. Start from <Link to="/account/student/my-learning">My Courses</Link>.
+                            No course progress yet. Start from{" "}
+                            <Link to="/account/student/my-learning">My Courses</Link>.
                           </div>
                         )}
                       </div>
@@ -415,7 +472,8 @@ const StudentDashboard = () => {
                         </p>
                         {latestShowcases.length === 0 ? (
                           <div className="sd-muted">
-                            No showcases yet. Build in <Link to="/account/innovation/my-teams">My Teams</Link> and publish.
+                            No showcases yet. Build in{" "}
+                            <Link to="/account/innovation/my-teams">My Teams</Link> and publish.
                           </div>
                         ) : (
                           <div className="d-flex flex-column gap-2">
@@ -429,7 +487,9 @@ const StudentDashboard = () => {
                                     <span className="sd-pill">Completed</span>
                                   </div>
                                 </div>
-                                <Link to={`/account/innovation/showcases/${s.id || s.idea_id}`} className="sd-view-btn">Open →</Link>
+                                <Link to={`/account/innovation/showcases/${s.id || s.idea_id}`} className="sd-view-btn">
+                                  Open →
+                                </Link>
                               </div>
                             ))}
                             <Link to="/account/innovation/showcase" className="sd-hub-link">Explore all →</Link>

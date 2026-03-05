@@ -184,69 +184,55 @@ const css = `
   }
 `;
 
-// ✅ FIX: strip /api or /api/ from the end — matches both
 const backendBase = apiUrl.replace(/\/api\/?$/, "");
 
-// ✅ FIX: extract the raw image filename from course object
-// DB stores bare filename in `image` column; image_url and image_small_url are NULL
-const getRawCourseImage = (course) =>
-  course?.image_small_url ||
-  course?.image_url ||
-  course?.course_small_image ||
-  course?.thumbnail ||
-  course?.image ||        // ← this is what your DB actually stores
-  "";
-
-// ✅ FIX: build multiple fallback URL candidates for a bare filename
 const buildImgCandidates = (raw, title) => {
   const placeholder = `https://placehold.co/900x500?text=${encodeURIComponent(title || "Course")}`;
 
-  if (!raw) return [placeholder];
+  if (!raw) return { candidates: [placeholder], placeholder };
 
   const s = String(raw).trim();
 
-  // Already a full URL
-  if (/^https?:\/\//i.test(s)) return [s, placeholder];
+  if (/^https?:\/\//i.test(s)) return { candidates: [s, placeholder], placeholder };
 
-  // Already a rooted path like /uploads/... or /storage/...
   if (s.startsWith("/uploads") || s.startsWith("/storage")) {
-    return [`${backendBase}${s}`, placeholder];
+    return { candidates: [`${backendBase}${s}`, placeholder], placeholder };
   }
 
-  // Relative path like uploads/course/...
   if (s.startsWith("uploads/") || s.startsWith("storage/")) {
-    return [`${backendBase}/${s}`, placeholder];
+    return { candidates: [`${backendBase}/${s}`, placeholder], placeholder };
   }
 
-  // ✅ Bare filename (e.g. "1759309572-1.jpg") — try all common upload paths
-  return [
+  const candidates = [
     `${backendBase}/uploads/course/small/${s}`,
     `${backendBase}/uploads/course/${s}`,
     `${backendBase}/uploads/courses/small/${s}`,
     `${backendBase}/uploads/courses/${s}`,
-    `${backendBase}/storage/uploads/course/small/${s}`,
     `${backendBase}/storage/${s}`,
     placeholder,
   ];
+
+  return { candidates, placeholder };
 };
 
-// ✅ SmartImg: tries each candidate URL in order on error
 const SmartImg = ({ raw, title, className = "", alt = "", style = {} }) => {
-  const candidates = useMemo(() => buildImgCandidates(raw, title), [raw, title]);
+  const { candidates } = useMemo(() => buildImgCandidates(raw, title), [raw, title]);
   const [idx, setIdx] = useState(0);
 
-  // Reset when course changes
-  useEffect(() => setIdx(0), [raw]);
+  useEffect(() => setIdx(0), [raw, title]);
 
   return (
     <img
-      src={candidates[idx] || candidates[0]}
-      alt={alt || title || "Course image"}
+      src={candidates[idx]}
+      alt={alt || title || "Image"}
       className={className}
       style={style}
-      onError={() =>
-        setIdx((prev) => (prev + 1 < candidates.length ? prev + 1 : prev))
-      }
+      onError={() => {
+        setIdx((prev) => {
+          const next = prev + 1;
+          return next < candidates.length ? next : prev;
+        });
+      }}
     />
   );
 };
@@ -282,11 +268,7 @@ export const Detail = () => {
   const enrollCourse = async () => {
     await fetch(`${apiUrl}/enroll-course`, {
       method: "POST",
-      headers: {
-        "Content-type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { "Content-type": "application/json", Accept: "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ course_id: course.id }),
     })
       .then(async (res) => ({ status: res.status, data: await res.json() }))
@@ -304,12 +286,7 @@ export const Detail = () => {
   }, [params.id]);
 
   const discountPct =
-    course?.cross_price && course?.price
-      ? Math.round((1 - course.price / course.cross_price) * 100)
-      : null;
-
-  // ✅ Extract raw image once course loads
-  const rawCourseImg = course ? getRawCourseImage(course) : "";
+    course?.cross_price && course?.price ? Math.round((1 - course.price / course.cross_price) * 100) : null;
 
   return (
     <Layout>
@@ -448,16 +425,8 @@ export const Detail = () => {
                             >
                               {chapter.title}
                             </span>
-                            <span
-                              style={{
-                                fontSize: "0.7rem",
-                                color: "var(--text3)",
-                                fontWeight: 500,
-                                marginLeft: "auto",
-                              }}
-                            >
-                              {chapter.lessons_count} lessons ·{" "}
-                              {convertMinutesToHours(chapter.lessons_sum_duration)}
+                            <span style={{ fontSize: "0.7rem", color: "var(--text3)", fontWeight: 500, marginLeft: "auto" }}>
+                              {chapter.lessons_count} lessons · {convertMinutesToHours(chapter.lessons_sum_duration)}
                             </span>
                           </Accordion.Header>
 
@@ -466,32 +435,17 @@ export const Detail = () => {
                               <div key={lesson.id} className="dt-lesson-item">
                                 <div className="dt-lesson-left">
                                   <LuMonitorPlay className="dt-lesson-icon" size={15} />
-                                  <span
-                                    style={{
-                                      overflow: "hidden",
-                                      textOverflow: "ellipsis",
-                                      whiteSpace: "nowrap",
-                                    }}
-                                  >
+                                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                     {lesson.title}
                                   </span>
                                 </div>
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                                   {lesson.is_free_preview === "yes" && (
-                                    <button
-                                      className="dt-preview-btn"
-                                      onClick={() => handleShow(lesson)}
-                                    >
+                                    <button className="dt-preview-btn" onClick={() => handleShow(lesson)}>
                                       ▶ Preview
                                     </button>
                                   )}
-                                  <span
-                                    style={{
-                                      fontSize: "0.7rem",
-                                      color: "var(--text3)",
-                                      fontWeight: 600,
-                                    }}
-                                  >
+                                  <span style={{ fontSize: "0.7rem", color: "var(--text3)", fontWeight: 600 }}>
                                     {convertMinutesToHours(lesson.duration)}
                                   </span>
                                 </div>
@@ -509,17 +463,9 @@ export const Detail = () => {
               <div className="col-lg-4">
                 <div className="dt-sidebar">
                   <div className="dt-enroll-card">
-
-                    {/* ✅ FIXED: SmartImg now uses getRawCourseImage which correctly
-                        reads course.image (bare filename from DB) and tries all
-                        common upload paths as fallbacks */}
+                    {/* ✅ Thumbnail FIXED HERE */}
                     <div className="dt-thumb-wrap">
-                      <SmartImg
-                        raw={rawCourseImg}
-                        title={course.title}
-                        alt={course.title}
-                        className="dt-course-thumb"
-                      />
+                      <SmartImg raw={course.course_small_image || course.image || course.thumbnail || ""} title={course.title} alt={course.title} className="dt-course-thumb" />
                       <div className="dt-thumb-overlay">
                         {discountPct && (
                           <span
@@ -541,23 +487,12 @@ export const Detail = () => {
                     <div className="dt-enroll-body">
                       <div className="dt-price-row">
                         <span className="dt-price">${course.price}</span>
-                        {course.cross_price && (
-                          <span className="dt-cross-price">${course.cross_price}</span>
-                        )}
-                        {discountPct && (
-                          <span className="dt-discount-chip">{discountPct}% off</span>
-                        )}
+                        {course.cross_price && <span className="dt-cross-price">${course.cross_price}</span>}
+                        {discountPct && <span className="dt-discount-chip">{discountPct}% off</span>}
                       </div>
 
                       {course.cross_price && (
-                        <p
-                          style={{
-                            fontSize: "0.72rem",
-                            color: "var(--orange)",
-                            fontWeight: 700,
-                            margin: "0.2rem 0 0",
-                          }}
-                        >
+                        <p style={{ fontSize: "0.72rem", color: "var(--orange)", fontWeight: 700, margin: "0.2rem 0 0" }}>
                           ⚡ Limited time offer
                         </p>
                       )}
@@ -574,11 +509,7 @@ export const Detail = () => {
                         { icon: "📱", bg: "#e6faf3", label: "Access on mobile and TV" },
                         { icon: "🏆", bg: "#fff8e6", label: "Certificate of completion" },
                         { icon: "🎬", bg: "#fff2ee", label: `${course.total_lessons || 0} video lessons` },
-                        {
-                          icon: "⏱",
-                          bg: "#f5f0ff",
-                          label: `${convertMinutesToHours(course.total_duration || 0)} content`,
-                        },
+                        { icon: "⏱", bg: "#f5f0ff", label: `${convertMinutesToHours(course.total_duration || 0)} content` },
                       ].map((item, i) => (
                         <div key={i} className="dt-include-item">
                           <span className="dt-include-icon" style={{ background: item.bg }}>
