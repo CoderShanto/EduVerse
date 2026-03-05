@@ -124,18 +124,14 @@ const css = `
   @media (max-width: 768px) { .sd-greeting { flex-direction: column; text-align: center; align-items: center; } .sd-clock { text-align: center; } .sd-greeting-left { flex-direction: column; align-items: center; } }
 `;
 
-// ✅ FIX: remove /api and /api/ safely
-const backendBase = apiUrl.replace(/\/api\/?$/, "");
+const backendBase = apiUrl.replace(/\/api$/, "");
 
-// ✅ FIX: always return a usable src (placeholder)
 const resolveImg = (raw, title) => {
   const placeholder = `https://placehold.co/200x200?text=${encodeURIComponent(title || "Course")}`;
-
-  if (!raw) return { src: placeholder, placeholder };
+  if (!raw) return { src: "", placeholder };
 
   const isHttp = typeof raw === "string" && /^https?:\/\//i.test(raw);
   const localSmall = `${backendBase}/uploads/course/small/${raw}`;
-
   return { src: isHttp ? raw : localSmall, placeholder };
 };
 
@@ -270,11 +266,7 @@ const StudentDashboard = () => {
               </div>
 
               {loading ? (
-                <div className="sd-stats-row mb-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="sd-skeleton" />
-                  ))}
-                </div>
+                <div className="sd-stats-row mb-4">{[1, 2, 3].map((i) => <div key={i} className="sd-skeleton" />)}</div>
               ) : (
                 <>
                   <div className="sd-stats-row mb-4">
@@ -286,7 +278,6 @@ const StudentDashboard = () => {
                         View All →
                       </Link>
                     </div>
-
                     <div className="sd-stat-card c-orange" data-num={completed}>
                       <div className="sd-stat-icon">✅</div>
                       <div className="sd-num">{completed}</div>
@@ -295,7 +286,6 @@ const StudentDashboard = () => {
                         Certificates →
                       </Link>
                     </div>
-
                     <div className="sd-stat-card c-green" data-num={streak}>
                       <div className="sd-stat-icon">🔥</div>
                       <div className="sd-num">{streak}</div>
@@ -325,21 +315,21 @@ const StudentDashboard = () => {
                             {progressCourses.map((c, i) => {
                               const pct = Number.isFinite(Number(c.progress)) ? Number(c.progress) : 0;
 
-                              // ✅ FIX: include DB columns used in course lists + backend filenames
-                              const rawImg =
+                              // ✅ updated: check new columns first
+                              const raw =
                                 c.image_small_url ||
                                 c.image_url ||
                                 c.course_small_image ||
                                 c.image ||
                                 "";
 
-                              const { src, placeholder } = resolveImg(rawImg, c.title);
+                              const { src, placeholder } = resolveImg(raw, c.title);
 
                               return (
                                 <div key={`${c.course_id}-${i}`} className="sd-course-row">
                                   <div className="sd-course-thumb">
                                     <img
-                                      src={src}
+                                      src={src || placeholder}
                                       alt={c.title || "Course"}
                                       onError={(ev) => {
                                         ev.currentTarget.src = placeholder;
@@ -377,7 +367,6 @@ const StudentDashboard = () => {
                     </div>
                   </div>
 
-                  {/* ✅ keep rest same */}
                   <div className="row g-3 mb-4">
                     <div className="col-md-6">
                       <div className="sd-card">
