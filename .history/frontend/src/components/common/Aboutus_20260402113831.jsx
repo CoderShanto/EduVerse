@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react'
-import Layout from '../common/Layout'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useRef, useState } from "react";
+import Layout from "../common/Layout";
+import { Link } from "react-router-dom";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -355,171 +355,374 @@ const css = `
     .ab-values-grid { grid-template-columns: 1fr; }
     .ab-stats-strip { grid-template-columns: repeat(2,1fr); }
   }
-`
+`;
 
 const TEAM = [
-  { name: 'Sarah Chen', role: 'CEO & Founder', bio: 'Former Google engineer with 12 years in EdTech. Passionate about democratising education globally.', grad: 'linear-gradient(135deg,#4f6ef7,#7c5cbf)' },
-  { name: 'Marcus Rivera', role: 'Head of Curriculum', bio: 'PhD in Educational Psychology. Designed learning programs for 200,000+ students worldwide.', grad: 'linear-gradient(135deg,#22c98e,#06b6d4)' },
-  { name: 'Aisha Patel', role: 'Lead Instructor', bio: 'Award-winning educator and author of 3 bestselling programming books.', grad: 'linear-gradient(135deg,#ff7140,#ffb020)' },
-  { name: 'James Okafor', role: 'CTO', bio: 'Built scalable learning infrastructure serving millions of concurrent learners every day.', grad: 'linear-gradient(135deg,#7c5cbf,#a855f7)' },
-]
+  {
+    name: "Sarah Chen",
+    role: "CEO & Founder",
+    bio: "Former Google engineer with 12 years in EdTech. Passionate about democratising education globally.",
+    grad: "linear-gradient(135deg,#4f6ef7,#7c5cbf)",
+  },
+  {
+    name: "Marcus Rivera",
+    role: "Head of Curriculum",
+    bio: "PhD in Educational Psychology. Designed learning programs for 200,000+ students worldwide.",
+    grad: "linear-gradient(135deg,#22c98e,#06b6d4)",
+  },
+  {
+    name: "Aisha Patel",
+    role: "Lead Instructor",
+    bio: "Award-winning educator and author of 3 bestselling programming books.",
+    grad: "linear-gradient(135deg,#ff7140,#ffb020)",
+  },
+  {
+    name: "James Okafor",
+    role: "CTO",
+    bio: "Built scalable learning infrastructure serving millions of concurrent learners every day.",
+    grad: "linear-gradient(135deg,#7c5cbf,#a855f7)",
+  },
+];
 
 const VALUES = [
-  { icon: '🎯', title: 'Outcome-First Learning', text: 'Every course is designed backwards from the job you want — not the topic a professor loves.', bg: 'var(--blue-light)' },
-  { icon: '🌍', title: 'Radical Accessibility', text: 'World-class education should never be gated by geography, wealth, or background.', bg: 'var(--green-light)' },
-  { icon: '🔬', title: 'Evidence-Based Design', text: 'We apply cognitive science and learning research to every video, quiz, and project.', bg: 'var(--orange-light)' },
-  { icon: '🤝', title: 'Community First', text: 'Learning is social. Our forums, live sessions, and mentors keep you from ever feeling alone.', bg: 'var(--purple-light)' },
-  { icon: '⚡', title: 'Speed of Industry', text: 'Courses updated every 90 days. When the tech changes, so do we — no stale content, ever.', bg: 'var(--yellow-light)' },
-  { icon: '🏆', title: 'Verified Achievement', text: 'Our certificates are recognised by 1,200+ hiring partners across 60 countries.', bg: 'var(--blue-light)' },
-]
+  {
+    icon: "🎯",
+    title: "Outcome-First Learning",
+    text: "Every course is designed backwards from the job you want — not the topic a professor loves.",
+    bg: "var(--blue-light)",
+  },
+  {
+    icon: "🌍",
+    title: "Radical Accessibility",
+    text: "World-class education should never be gated by geography, wealth, or background.",
+    bg: "var(--green-light)",
+  },
+  {
+    icon: "🔬",
+    title: "Evidence-Based Design",
+    text: "We apply cognitive science and learning research to every video, quiz, and project.",
+    bg: "var(--orange-light)",
+  },
+  {
+    icon: "🤝",
+    title: "Community First",
+    text: "Learning is social. Our forums, live sessions, and mentors keep you from ever feeling alone.",
+    bg: "var(--purple-light)",
+  },
+  {
+    icon: "⚡",
+    title: "Speed of Industry",
+    text: "Courses updated every 90 days. When the tech changes, so do we — no stale content, ever.",
+    bg: "var(--yellow-light)",
+  },
+  {
+    icon: "🏆",
+    title: "Verified Achievement",
+    text: "Our certificates are recognised by 1,200+ hiring partners across 60 countries.",
+    bg: "var(--blue-light)",
+  },
+];
 
 const AboutUs = () => {
   return (
     <Layout>
       <style>{css}</style>
-      <div className='ab-blob-wrap'>
-        <div className='ab-blob ab-blob-1' /><div className='ab-blob ab-blob-2' /><div className='ab-blob ab-blob-3' />
+      <div className="ab-blob-wrap">
+        <div className="ab-blob ab-blob-1" />
+        <div className="ab-blob ab-blob-2" />
+        <div className="ab-blob ab-blob-3" />
       </div>
 
-      <div className='ab-root'>
-        <div className='ab-inner'>
-
+      <div className="ab-root">
+        <div className="ab-inner">
           {/* ── HERO ── */}
-          <section className='ab-hero'>
-            <div className='ab-ring r1'><div className='ab-ring-dot' /></div>
-            <div className='ab-ring r2'><div className='ab-ring-dot' /></div>
-            <div className='ab-ring r3' />
+          <section className="ab-hero">
+            <div className="ab-ring r1">
+              <div className="ab-ring-dot" />
+            </div>
+            <div className="ab-ring r2">
+              <div className="ab-ring-dot" />
+            </div>
+            <div className="ab-ring r3" />
 
-            <div className='ab-hero-content'>
-              <div className='ab-eyebrow'>About Smart Learning</div>
-              <h1 className='ab-hero-title'>
+            <div className="ab-hero-content">
+              <div className="ab-eyebrow">About Smart Learning</div>
+              <h1 className="ab-hero-title">
                 Education that
-                <span className='line2'><em>actually</em> works</span>
+                <span className="line2">
+                  <em>actually</em> works
+                </span>
               </h1>
-              <p className='ab-hero-sub'>
-                We started with one belief: the best education in the world should be available to anyone, anywhere — not just those who can afford a top university.
+              <p className="ab-hero-sub">
+                We started with one belief: the best education in the world
+                should be available to anyone, anywhere — not just those who can
+                afford a top university.
               </p>
-              <div className='ab-hero-ctas'>
-                <Link to='/courses' className='ab-btn-primary'>Explore Courses →</Link>
-                <a href='#mission' className='ab-btn-secondary'>Our Mission ↓</a>
+              <div className="ab-hero-ctas">
+                <Link to="/courses" className="ab-btn-primary">
+                  Explore Courses →
+                </Link>
+                <a href="#mission" className="ab-btn-secondary">
+                  Our Mission ↓
+                </a>
               </div>
             </div>
 
-            <div className='ab-scroll-hint'>
-              <div className='ab-scroll-pill'><div className='ab-scroll-dot' /></div>
+            <div className="ab-scroll-hint">
+              <div className="ab-scroll-pill">
+                <div className="ab-scroll-dot" />
+              </div>
               scroll
             </div>
           </section>
 
-          <div className='container'>
-
+          <div className="container">
             {/* ── STATS ── */}
-            <div className='ab-stats-strip'>
+            <div className="ab-stats-strip">
               {[
-                { num: '120', suffix: 'K+', label: 'Students Enrolled' },
-                { num: '1.8', suffix: 'K', label: 'Hours of Content' },
-                { num: '340', suffix: '+', label: 'Expert Instructors' },
-                { num: '98', suffix: '%', label: 'Completion Rate' },
+                { num: "120", suffix: "K+", label: "Students Enrolled" },
+                { num: "1.8", suffix: "K", label: "Hours of Content" },
+                { num: "340", suffix: "+", label: "Expert Instructors" },
+                { num: "98", suffix: "%", label: "Completion Rate" },
               ].map((s, i) => (
-                <div key={i} className='ab-stat-cell'>
-                  <span className='ab-stat-num'>{s.num}<em>{s.suffix}</em></span>
-                  <div className='ab-stat-label'>{s.label}</div>
+                <div key={i} className="ab-stat-cell">
+                  <span className="ab-stat-num">
+                    {s.num}
+                    <em>{s.suffix}</em>
+                  </span>
+                  <div className="ab-stat-label">{s.label}</div>
                 </div>
               ))}
             </div>
 
             {/* ── MISSION ── */}
-            <section id='mission' className='ab-section'>
-              <div className='ab-mission-grid'>
-                <div className='ab-mission-visual'>
-                  <div className='ab-mission-bg-card c2' />
-                  <div className='ab-mission-bg-card c1' />
-                  <div className='ab-mission-main-card'>
-                    <div className='ab-mission-icon-row'>
+            <section id="mission" className="ab-section">
+              <div className="ab-mission-grid">
+                <div className="ab-mission-visual">
+                  <div className="ab-mission-bg-card c2" />
+                  <div className="ab-mission-bg-card c1" />
+                  <div className="ab-mission-main-card">
+                    <div className="ab-mission-icon-row">
                       {[
-                        { icon: '🎓', bg: 'linear-gradient(135deg,#4f6ef7,#7c5cbf)' },
-                        { icon: '🚀', bg: 'linear-gradient(135deg,#22c98e,#06b6d4)' },
-                        { icon: '💡', bg: 'linear-gradient(135deg,#ffb020,#ff7140)' },
+                        {
+                          icon: "🎓",
+                          bg: "linear-gradient(135deg,#4f6ef7,#7c5cbf)",
+                        },
+                        {
+                          icon: "🚀",
+                          bg: "linear-gradient(135deg,#22c98e,#06b6d4)",
+                        },
+                        {
+                          icon: "💡",
+                          bg: "linear-gradient(135deg,#ffb020,#ff7140)",
+                        },
                       ].map((b, i) => (
-                        <div key={i} className='ab-icon-blob' style={{ background: b.bg, color: '#fff' }}>{b.icon}</div>
+                        <div
+                          key={i}
+                          className="ab-icon-blob"
+                          style={{ background: b.bg, color: "#fff" }}
+                        >
+                          {b.icon}
+                        </div>
                       ))}
                     </div>
-                    <div className='ab-mission-quote'>
-                      "We don't just teach skills. We reshape careers, rebuild confidence, and rewrite futures."
+                    <div className="ab-mission-quote">
+                      "We don't just teach skills. We reshape careers, rebuild
+                      confidence, and rewrite futures."
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text2)', fontWeight: 600 }}>— Sarah Chen, CEO</div>
-                    <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {['Founded 2019', '60+ Countries', 'Award-Winning Platform'].map(tag => (
-                        <span key={tag} style={{ fontSize: '0.68rem', fontWeight: 700, padding: '4px 10px', borderRadius: '99px', background: 'var(--bg)', border: '1.5px solid var(--border)', color: 'var(--text2)' }}>{tag}</span>
+                    <div
+                      style={{
+                        fontSize: "0.78rem",
+                        color: "var(--text2)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      — Sarah Chen, CEO
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "0.5rem",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {[
+                        "Founded 2019",
+                        "60+ Countries",
+                        "Award-Winning Platform",
+                      ].map((tag) => (
+                        <span
+                          key={tag}
+                          style={{
+                            fontSize: "0.68rem",
+                            fontWeight: 700,
+                            padding: "4px 10px",
+                            borderRadius: "99px",
+                            background: "var(--bg)",
+                            border: "1.5px solid var(--border)",
+                            color: "var(--text2)",
+                          }}
+                        >
+                          {tag}
+                        </span>
                       ))}
                     </div>
                   </div>
-                  <div className='ab-float-badge b1'>
-                    <div className='ab-float-badge-icon' style={{ background: 'var(--green-light)' }}>🏆</div>
-                    <div><div style={{ fontWeight: 800, fontSize: '0.78rem' }}>Best EdTech 2024</div><div style={{ fontSize: '0.65rem', color: 'var(--text3)' }}>Forbes Education Awards</div></div>
+                  <div className="ab-float-badge b1">
+                    <div
+                      className="ab-float-badge-icon"
+                      style={{ background: "var(--green-light)" }}
+                    >
+                      🏆
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: "0.78rem" }}>
+                        Best EdTech 2024
+                      </div>
+                      <div
+                        style={{ fontSize: "0.65rem", color: "var(--text3)" }}
+                      >
+                        Forbes Education Awards
+                      </div>
+                    </div>
                   </div>
-                  <div className='ab-float-badge b2'>
-                    <div className='ab-float-badge-icon' style={{ background: 'var(--yellow-light)' }}>⭐</div>
-                    <div><div style={{ fontWeight: 800, fontSize: '0.78rem' }}>4.9 / 5.0 Rating</div><div style={{ fontSize: '0.65rem', color: 'var(--text3)' }}>120,000+ Reviews</div></div>
+                  <div className="ab-float-badge b2">
+                    <div
+                      className="ab-float-badge-icon"
+                      style={{ background: "var(--yellow-light)" }}
+                    >
+                      ⭐
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 800, fontSize: "0.78rem" }}>
+                        4.9 / 5.0 Rating
+                      </div>
+                      <div
+                        style={{ fontSize: "0.65rem", color: "var(--text3)" }}
+                      >
+                        120,000+ Reviews
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 <div>
-                  <div className='ab-section-eyebrow'>Our Mission</div>
-                  <h2 className='ab-section-title'>We exist to <em>close</em> the skills gap</h2>
-                  <p className='ab-section-sub' style={{ marginBottom: '1.5rem' }}>
-                    The world changes faster than traditional education can keep up. By the time a student graduates, half their coursework is already outdated.
+                  <div className="ab-section-eyebrow">Our Mission</div>
+                  <h2 className="ab-section-title">
+                    We exist to <em>close</em> the skills gap
+                  </h2>
+                  <p
+                    className="ab-section-sub"
+                    style={{ marginBottom: "1.5rem" }}
+                  >
+                    The world changes faster than traditional education can keep
+                    up. By the time a student graduates, half their coursework
+                    is already outdated.
                   </p>
-                  <p className='ab-section-sub' style={{ marginBottom: '1.5rem' }}>
-                    Smart Learning was built to fix that. We partner directly with industry leaders to ensure every course reflects what employers actually need — today, not five years ago.
+                  <p
+                    className="ab-section-sub"
+                    style={{ marginBottom: "1.5rem" }}
+                  >
+                    Smart Learning was built to fix that. We partner directly
+                    with industry leaders to ensure every course reflects what
+                    employers actually need — today, not five years ago.
                   </p>
-                  <p className='ab-section-sub'>
-                    From a first line of code to a promotion to senior engineer, we're with you at every step.
+                  <p className="ab-section-sub">
+                    From a first line of code to a promotion to senior engineer,
+                    we're with you at every step.
                   </p>
-                  <div style={{ display: 'flex', gap: '0.8rem', marginTop: '2rem', flexWrap: 'wrap' }}>
-                    <Link to='/courses' className='ab-btn-primary'>Start Learning →</Link>
-                    <Link to='/courses' className='ab-btn-secondary'>View Courses</Link>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "0.8rem",
+                      marginTop: "2rem",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <Link to="/courses" className="ab-btn-primary">
+                      Start Learning →
+                    </Link>
+                    <Link to="/courses" className="ab-btn-secondary">
+                      View Courses
+                    </Link>
                   </div>
                 </div>
               </div>
             </section>
 
             {/* ── VALUES ── */}
-            <section className='ab-section'>
-              <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                <div className='ab-section-eyebrow' style={{ display: 'inline-flex' }}>Our Values</div>
-                <h2 className='ab-section-title'>What we <em>stand</em> for</h2>
+            <section className="ab-section">
+              <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+                <div
+                  className="ab-section-eyebrow"
+                  style={{ display: "inline-flex" }}
+                >
+                  Our Values
+                </div>
+                <h2 className="ab-section-title">
+                  What we <em>stand</em> for
+                </h2>
               </div>
-              <div className='ab-values-grid'>
+              <div className="ab-values-grid">
                 {VALUES.map((v, i) => (
-                  <div key={i} className='ab-value-card' data-num={i + 1} style={{ animationDelay: `${i * 0.07}s` }}>
-                    <div className='ab-value-icon' style={{ background: v.bg }}>{v.icon}</div>
-                    <div className='ab-value-title'>{v.title}</div>
-                    <p className='ab-value-text'>{v.text}</p>
+                  <div
+                    key={i}
+                    className="ab-value-card"
+                    data-num={i + 1}
+                    style={{ animationDelay: `${i * 0.07}s` }}
+                  >
+                    <div className="ab-value-icon" style={{ background: v.bg }}>
+                      {v.icon}
+                    </div>
+                    <div className="ab-value-title">{v.title}</div>
+                    <p className="ab-value-text">{v.text}</p>
                   </div>
                 ))}
               </div>
             </section>
 
             {/* ── TEAM ── */}
-            <section className='ab-section'>
-              <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-                <div className='ab-section-eyebrow' style={{ display: 'inline-flex' }}>The Team</div>
-                <h2 className='ab-section-title'>People behind <em>the platform</em></h2>
-                <p className='ab-section-sub' style={{ margin: '0.5rem auto 0', textAlign: 'center' }}>A small, obsessive team united by one mission: make learning work.</p>
+            <section className="ab-section">
+              <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+                <div
+                  className="ab-section-eyebrow"
+                  style={{ display: "inline-flex" }}
+                >
+                  The Team
+                </div>
+                <h2 className="ab-section-title">
+                  People behind <em>the platform</em>
+                </h2>
+                <p
+                  className="ab-section-sub"
+                  style={{ margin: "0.5rem auto 0", textAlign: "center" }}
+                >
+                  A small, obsessive team united by one mission: make learning
+                  work.
+                </p>
               </div>
-              <div className='ab-team-grid'>
+              <div className="ab-team-grid">
                 {TEAM.map((member, i) => (
-                  <div key={i} className='ab-team-card' style={{ animationDelay: `${i * 0.07}s` }}>
-                    <div className='ab-team-avatar-wrap'>
-                      <div className='ab-team-avatar' style={{ background: member.grad }}>
-                        {member.name.split(' ').map(n => n[0]).join('')}
+                  <div
+                    key={i}
+                    className="ab-team-card"
+                    style={{ animationDelay: `${i * 0.07}s` }}
+                  >
+                    <div className="ab-team-avatar-wrap">
+                      <div
+                        className="ab-team-avatar"
+                        style={{ background: member.grad }}
+                      >
+                        {member.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
                       </div>
                     </div>
-                    <div className='ab-team-body'>
-                      <div className='ab-team-name'>{member.name}</div>
-                      <div className='ab-team-role'>{member.role}</div>
-                      <p className='ab-team-bio'>{member.bio}</p>
+                    <div className="ab-team-body">
+                      <div className="ab-team-name">{member.name}</div>
+                      <div className="ab-team-role">{member.role}</div>
+                      <p className="ab-team-bio">{member.bio}</p>
                     </div>
                   </div>
                 ))}
@@ -527,24 +730,33 @@ const AboutUs = () => {
             </section>
 
             {/* ── CTA BANNER ── */}
-            <div className='ab-cta-banner'>
-              <div className='ab-cta-grid-overlay' />
-              <div className='ab-cta-deco d1' /><div className='ab-cta-deco d2' />
-              <div className='ab-cta-content'>
-                <h2 className='ab-cta-title'>Ready to transform <em>your career?</em></h2>
-                <p className='ab-cta-sub'>Join 120,000+ learners who have already taken the leap. Your first course is free — no credit card required.</p>
-                <div className='ab-cta-btns'>
-                  <Link to='/courses' className='ab-cta-btn-white'>🎓 Start for Free →</Link>
-                  <Link to='/courses' className='ab-cta-btn-ghost'>Browse Courses</Link>
+            <div className="ab-cta-banner">
+              <div className="ab-cta-grid-overlay" />
+              <div className="ab-cta-deco d1" />
+              <div className="ab-cta-deco d2" />
+              <div className="ab-cta-content">
+                <h2 className="ab-cta-title">
+                  Ready to transform <em>your career?</em>
+                </h2>
+                <p className="ab-cta-sub">
+                  Join 120,000+ learners who have already taken the leap. Your
+                  first course is free — no credit card required.
+                </p>
+                <div className="ab-cta-btns">
+                  <Link to="/courses" className="ab-cta-btn-white">
+                    🎓 Start for Free →
+                  </Link>
+                  <Link to="/courses" className="ab-cta-btn-ghost">
+                    Browse Courses
+                  </Link>
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default AboutUs
+export default AboutUs;
