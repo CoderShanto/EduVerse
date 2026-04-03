@@ -20,51 +20,104 @@ use App\Models\UniversityEmailDomain;
 
 class AccountController extends Controller
 {
-   public function register(Request $request)
+//    public function register(Request $request)
+// {
+//     $validator = Validator::make($request->all(), [
+//         'name' => 'required|min:5',
+//         'email' => 'required|email|unique:users',
+//         'password' => 'required|min:6',
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 400,
+//             'errors' => $validator->errors()
+//         ], 400);
+//     }
+
+//     // ✅ Normalize email + extract domain
+//     $email = strtolower(trim($request->email));
+//     $domain = substr(strrchr($email, "@"), 1);
+
+//     // ✅ Find matching active university email domain
+//     $domainRow = UniversityEmailDomain::with('university')
+//         ->where('domain', $domain)
+//         ->where('is_active', true)
+//         ->first();
+
+//     if (!$domainRow || !$domainRow->university || !$domainRow->university->is_active) {
+//         return response()->json([
+//             'status' => 422,
+//             'message' => 'Please use a valid university email address.'
+//         ], 422);
+//     }
+
+//     // ✅ Save user
+//     $user = new User();
+//     $user->name = $request->name;
+//     $user->email = $email;
+//     $user->password = Hash::make($request->password);
+//     $user->role = 'student';
+//     $user->university_id = $domainRow->university_id;
+//     $user->save();
+
+//     return response()->json([
+//         'status' => 200,
+//         'message' => 'User registered successfully.'
+//     ], 200);
+// }
+public function register(Request $request)
 {
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|min:5',
-        'email' => 'required|email|unique:users',
-        'password' => 'required|min:6',
-    ]);
+    try {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:5',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6',
+        ]);
 
-    if ($validator->fails()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $email = strtolower(trim($request->email));
+        $domain = substr(strrchr($email, "@"), 1);
+
+        $domainRow = UniversityEmailDomain::with('university')
+            ->where('domain', $domain)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$domainRow || !$domainRow->university || !$domainRow->university->is_active) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Please use a valid university email address.'
+            ], 422);
+        }
+
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $email;
+        $user->password = Hash::make($request->password);
+        $user->role = 'student';
+        $user->university_id = $domainRow->university_id;
+        $user->save();
+
         return response()->json([
-            'status' => 400,
-            'errors' => $validator->errors()
-        ], 400);
-    }
+            'status' => 200,
+            'message' => 'User registered successfully.'
+        ], 200);
 
-    // ✅ Normalize email + extract domain
-    $email = strtolower(trim($request->email));
-    $domain = substr(strrchr($email, "@"), 1);
-
-    // ✅ Find matching active university email domain
-    $domainRow = UniversityEmailDomain::with('university')
-        ->where('domain', $domain)
-        ->where('is_active', true)
-        ->first();
-
-    if (!$domainRow || !$domainRow->university || !$domainRow->university->is_active) {
+    } catch (\Throwable $e) {
         return response()->json([
-            'status' => 422,
-            'message' => 'Please use a valid university email address.'
-        ], 422);
+            'status' => 500,
+            'message' => 'Registration failed',
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+        ], 500);
     }
-
-    // ✅ Save user
-    $user = new User();
-    $user->name = $request->name;
-    $user->email = $email;
-    $user->password = Hash::make($request->password);
-    $user->role = 'student';
-    $user->university_id = $domainRow->university_id;
-    $user->save();
-
-    return response()->json([
-        'status' => 200,
-        'message' => 'User registered successfully.'
-    ], 200);
 }
     public function authenticate(Request $request)
 {
@@ -114,25 +167,35 @@ class AccountController extends Controller
         ],
     ], 200);
 }
-    public function courses(Request $request){
+    public function courses(Request $request)
+{
+    $user = $request->user();
 
-        $courses = Course::where('user_id',$request->user()->id)
+    $query = Course::query()
         ->withCount('reviews')
         ->withCount('enrollments')
-        ->withSum('reviews','rating')
-        ->with('level')
-        ->get();
+        ->withSum('reviews', 'rating')
+        ->with('level');
 
-         $courses->map(function($course){
-            $course->rating = $course->reviews_count > 0 ?
-              number_format(($course->reviews_sum_rating/$course->reviews_count),1) : "0.0";
-        });
-
-         return response()->json([
-                'status' => 200,
-                'courses' => $courses
-            ],200);
+    // ✅ Admin gets ALL courses, Instructor gets only own courses
+    if ($user->role !== 'admin') {
+        $query->where('user_id', $user->id);
     }
+
+    $courses = $query->latest()->get();
+
+    $courses->map(function ($course) {
+        $course->rating = $course->reviews_count > 0
+            ? number_format(($course->reviews_sum_rating / $course->reviews_count), 1)
+            : "0.0";
+        return $course;
+    });
+
+    return response()->json([
+        'status' => 200,
+        'courses' => $courses
+    ], 200);
+}
 
     public function enrollments(Request $request){  
         $enrollments = Enrollment::where('user_id', $request->user()->id)
@@ -515,39 +578,45 @@ public function saveUserActivity(Request $request){
 
    }
 
-   public function updatePassword(Request $request){
+   public function updatePassword(Request $request)
+{
+    $user = $request->user();
 
-    $user = User::find($request->user()->id);
-
-    $validator = Validator::make($request->all(),[
+    $validator = Validator::make($request->all(), [
         'old_password' => 'required',
-        'new_password' => 'required|min:5',
+        'new_password' => 'required|min:5|confirmed', 
+        // ✅ requires field: new_password_confirmation
     ]);
-    if($validator->fails()){
+
+    if ($validator->fails()) {
         return response()->json([
             'status' => 400,
             'errors' => $validator->errors()
-        ],400);
+        ], 400);
     }
 
-    //Match old password
-    if(!Hash::check($request->old_password, $user->password)){
-
+    if (!Hash::check($request->old_password, $user->password)) {
         return response()->json([
             'status' => 400,
             'errors' => ['old_password' => ['The old password is incorrect']]
-        ],400);
+        ], 400);
     }
-    // $user->password = $request->new_password;
-     $user->password = Hash::make($request->new_password);
+
+    // ✅ prevent reuse
+    if (Hash::check($request->new_password, $user->password)) {
+        return response()->json([
+            'status' => 400,
+            'errors' => ['new_password' => ['New password cannot be same as old password']]
+        ], 400);
+    }
+
+    $user->password = Hash::make($request->new_password);
     $user->save();
 
     return response()->json([
         'status' => 200,
         'message' => "Password updated successfully."
-    ],200);
-
-   }
- 
+    ], 200);
+}
    
 }

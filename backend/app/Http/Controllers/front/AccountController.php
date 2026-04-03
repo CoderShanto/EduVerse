@@ -20,51 +20,104 @@ use App\Models\UniversityEmailDomain;
 
 class AccountController extends Controller
 {
-   public function register(Request $request)
+//    public function register(Request $request)
+// {
+//     $validator = Validator::make($request->all(), [
+//         'name' => 'required|min:5',
+//         'email' => 'required|email|unique:users',
+//         'password' => 'required|min:6',
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 400,
+//             'errors' => $validator->errors()
+//         ], 400);
+//     }
+
+//     // ✅ Normalize email + extract domain
+//     $email = strtolower(trim($request->email));
+//     $domain = substr(strrchr($email, "@"), 1);
+
+//     // ✅ Find matching active university email domain
+//     $domainRow = UniversityEmailDomain::with('university')
+//         ->where('domain', $domain)
+//         ->where('is_active', true)
+//         ->first();
+
+//     if (!$domainRow || !$domainRow->university || !$domainRow->university->is_active) {
+//         return response()->json([
+//             'status' => 422,
+//             'message' => 'Please use a valid university email address.'
+//         ], 422);
+//     }
+
+//     // ✅ Save user
+//     $user = new User();
+//     $user->name = $request->name;
+//     $user->email = $email;
+//     $user->password = Hash::make($request->password);
+//     $user->role = 'student';
+//     $user->university_id = $domainRow->university_id;
+//     $user->save();
+
+//     return response()->json([
+//         'status' => 200,
+//         'message' => 'User registered successfully.'
+//     ], 200);
+// }
+public function register(Request $request)
 {
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|min:5',
-        'email' => 'required|email|unique:users',
-        'password' => 'required|min:6',
-    ]);
+    try {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:5',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:6',
+        ]);
 
-    if ($validator->fails()) {
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 400,
+                'errors' => $validator->errors()
+            ], 400);
+        }
+
+        $email = strtolower(trim($request->email));
+        $domain = substr(strrchr($email, "@"), 1);
+
+        $domainRow = UniversityEmailDomain::with('university')
+            ->where('domain', $domain)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$domainRow || !$domainRow->university || !$domainRow->university->is_active) {
+            return response()->json([
+                'status' => 422,
+                'message' => 'Please use a valid university email address.'
+            ], 422);
+        }
+
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $email;
+        $user->password = Hash::make($request->password);
+        $user->role = 'student';
+        $user->university_id = $domainRow->university_id;
+        $user->save();
+
         return response()->json([
-            'status' => 400,
-            'errors' => $validator->errors()
-        ], 400);
-    }
+            'status' => 200,
+            'message' => 'User registered successfully.'
+        ], 200);
 
-    // ✅ Normalize email + extract domain
-    $email = strtolower(trim($request->email));
-    $domain = substr(strrchr($email, "@"), 1);
-
-    // ✅ Find matching active university email domain
-    $domainRow = UniversityEmailDomain::with('university')
-        ->where('domain', $domain)
-        ->where('is_active', true)
-        ->first();
-
-    if (!$domainRow || !$domainRow->university || !$domainRow->university->is_active) {
+    } catch (\Throwable $e) {
         return response()->json([
-            'status' => 422,
-            'message' => 'Please use a valid university email address.'
-        ], 422);
+            'status' => 500,
+            'message' => 'Registration failed',
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+        ], 500);
     }
-
-    // ✅ Save user
-    $user = new User();
-    $user->name = $request->name;
-    $user->email = $email;
-    $user->password = Hash::make($request->password);
-    $user->role = 'student';
-    $user->university_id = $domainRow->university_id;
-    $user->save();
-
-    return response()->json([
-        'status' => 200,
-        'message' => 'User registered successfully.'
-    ], 200);
 }
     public function authenticate(Request $request)
 {
