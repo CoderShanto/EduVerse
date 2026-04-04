@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { apiUrl, getToken } from "../../../common/Config";
+import { apiUrl, token } from "../../../common/Config";
 import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { MdDragIndicator } from "react-icons/md";
@@ -39,27 +39,35 @@ const ManageOutcome = () => {
 
     setOutcomes(reorderedItems);
     saveOrder(reorderedItems);
-  };
+};
 
-  const saveOrder = async (updatedOutcomes) => {
+      const saveOrder = async (updatedOutcomes) => {
+     
+           
+   
+
     await fetch(`${apiUrl}/sort-outcomes`, {
       method: "POST",
       headers: {
         "Content-type": "application/json",
         Accept: "application/json",
-        Authorization: `Bearer ${getToken}`,
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ outcomes: updatedOutcomes }),
+      body: JSON.stringify({outcomes: updatedOutcomes}),
     })
       .then((res) => res.json())
       .then((result) => {
+       
+
         if (result.status == 200) {
+          
           toast.success(result.message);
         } else {
           console.log("Something went wrong");
         }
       });
-  };
+
+                    }
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -168,60 +176,58 @@ const ManageOutcome = () => {
             </div>
           </form>
 
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="list">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="space-y-2"
-                >
-                  {outcomes.map((outcome, index) => (
-                    <Draggable
-                      key={outcome.id}
-                      draggableId={`${outcome.id}`}
-                      index={index}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="mt-2 border bg-white shadow-lg  rounded"
-                        >
-                          <div className="card-body p-2 d-flex">
-                            <div>
-                              <MdDragIndicator />
-                            </div>
-                            <div className="d-flex justify-content-between w-100">
-                              <div className="ps-2">{outcome.text}</div>
-                              <div className="d-flex">
-                                <Link
-                                  onClick={() => handleShow(outcome)}
-                                  className="text-primary me-1"
-                                >
-                                  <BsPencilSquare />
-                                </Link>
-                                <Link
-                                  onClick={() => deleteOutcome(outcome.id)}
-                                  className="text-danger"
-                                >
-                                  <FaTrashAlt />
-                                </Link>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+          <DragDropContext onDragEnd={handleDragEnd} >
+    <Droppable droppableId="list">
+        {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                {
+                outcomes.map((outcome, index) => (
+                        <Draggable key={outcome.id} draggableId={`${outcome.id}`} index={index}>
 
-          {/* {outcomes &&
+                        {(provided) => (
+                            <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className="mt-2 border bg-white shadow-lg  rounded"
+                            >
+
+                 <div className="card-body p-2 d-flex">
+                    <div>
+                      <MdDragIndicator />
+                    </div>
+                    <div className="d-flex justify-content-between w-100">
+                      <div className="ps-2">{outcome.text}</div>
+                      <div className="d-flex">
+                        <Link
+                          onClick={() => handleShow(outcome)}
+                          className="text-primary me-1"
+                        >
+                          <BsPencilSquare />
+                        </Link>
+                        <Link
+                          onClick={() => deleteOutcome(outcome.id)}
+                          className="text-danger"
+                        >
+                          <FaTrashAlt />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                              
+                            </div>
+                        )}
+                    </Draggable>
+                ))}
+                {provided.placeholder}
+            </div>
+        )}
+    </Droppable>
+</DragDropContext> 
+
+
+
+         {/* {outcomes &&
             outcomes.map((outcome) => {
               return (
                 <div key={`outcome-${outcome.id}`} className="card shadow mb-2">
