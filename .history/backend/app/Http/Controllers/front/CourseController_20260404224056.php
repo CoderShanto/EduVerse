@@ -13,9 +13,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Validator;
 
+
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\Log;
 
 class CourseController extends Controller
 {
@@ -134,7 +136,7 @@ class CourseController extends Controller
         ], 200);
     }
 
- public function saveCourseImage($id, Request $request)
+public function saveCourseImage($id, Request $request)
 {
     $course = Course::find($id);
 
@@ -146,106 +148,106 @@ class CourseController extends Controller
         return response()->json(['message' => 'Forbidden'], 403);
     }
 
-    $validator = Validator::make($request->all(), [
-       'image' => 'required|image|mimetypes:image/jpeg,image/png,image/jpg,image/gif,image/svg+xml'
+    $request->validate([
+        'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
     ]);
 
-    if ($validator->fails()) {
-        return response()->json(['status' => 422, 'errors' => $validator->errors()], 422);
-    }
+    try {
+        // If you set CLOUDINARY_URL env correctly, this will work
+        $cloudinary = new \Cloudinary\Cloudinary();
 
-    $image = $request->file('image');
+        // Upload original
+        $upload = $cloudinary->uploadApi()->upload(
+            $request->file('image')->getRealPath(),
+            [
+                'folder' => 'course_covers',
+                'public_id' => 'course_' . $course->id . '_' . time(),
+            ]
+        );
 
-    // ✅ Upload to Cloudinary
-    $uploaded = Cloudinary::upload($image->getRealPath(), [
-        'folder' => 'eduverse/courses',
-        'resource_type' => 'image',
-    ]);
+        $fullUrl = $upload['secure_url'];
+        $publicId = $upload['public_id'];
 
-    $imageUrl = $uploaded->getSecurePath();
-    $publicId = $uploaded->getPublicId();
+        // Create small/thumbnail URL (NO DB column named course_small_image)
+        $smallUrl = (string) $cloudinary->image($publicId)
+            ->resize(\Cloudinary\Transformation\Resize::fill(750, 450))
+            ->toUrl();
 
-    // ✅ small thumbnail (750x450)
-    $smallUrl = Cloudinary::getUrl($publicId, [
-        'width' => 750,
-        'height' => 450,
-        'crop' => 'fill',
-        'secure' => true,
-    ]);
+        // ✅ Save to YOUR existing columns
+        $course->image_url = $fullUrl;
+        $course->image_small_url = $smallUrl;
 
-    // Save URLs (you need these columns)
-    $course->image_url = $imageUrl;
-    $course->image_small_url = $smallUrl;
-    $course->save();
+        // Optional: if you want image column also to hold the full URL:
+        // (If your frontend still uses `image`, this prevents breaking)
+        $course->image = $fullUrl;
 
-    return response()->json([
-        'status' => 200,
-        'data' => $course,
-        'message' => 'Course image uploaded successfully.'
-    ], 200);
-}
-
-    public function changeStatus($id, Request $request)
-    {
-        $course = Course::find($id);
-
-        if ($course == null) {
-            return response()->json([
-                'status' => 404,
-                'message' => 'Course not found.'
-            ], 404);
-        }
-
-        if (!$this->canManageCourse($request, $course)) {
-            return response()->json(['message' => 'Forbidden'], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'status' => 'required|in:0,1'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 422,
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        // at least one chapter required
-        $chapters = Chapter::where('course_id', $id)->pluck('id')->toArray();
-        if (count($chapters) == 0) {
-            return response()->json([
-                'status' => 200,
-                'course' => $course,
-                'message' => 'At least one chapter is required to publish a course.'
-            ], 200);
-        }
-
-        // at least one active lesson with video required
-        $lessonCount = Lesson::whereIn('chapter_id', $chapters)
-            ->where('status', 1)
-            ->whereNotNull('video')
-            ->count();
-
-        if ($lessonCount == 0) {
-            return response()->json([
-                'status' => 200,
-                'course' => $course,
-                'message' => 'At least one lesson with video is required to publish this course.'
-            ], 200);
-        }
-
-        $course->status = (int)$request->status;
         $course->save();
-
-        $message = ($course->status == 1) ? 'Course published successfully' : 'Course unpublished successfully';
 
         return response()->json([
             'status' => 200,
+            'data' => $course,
+            'message' => 'Course image uploaded successfully.',
+        ]);
+    } catch (\Throwable $e) {
+        \Log::error('saveCourseImage failed: ' . $e->getMessage());
+
+        return response()->json([
+            'status' => 500,
+            'message' => 'Image upload failed on server',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+   public function changeStatus($id, Request $request)
+{
+    $course = Course::find($id);
+
+    if ($course == null) {
+        return response()->json([
+            'status' => 404,
+            'message' => 'Course not found.'
+        ], 404);
+    }
+
+    if (!$this->canManageCourse($request, $course)) {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
+
+    $validator = Validator::make($request->all(), [
+        'status' => 'required|in:0,1'
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 422,
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    // ✅ Optional: still require 1 chapter (keep this if you want)
+    $chapters = Chapter::where('course_id', $id)->pluck('id')->toArray();
+    if (count($chapters) == 0) {
+        return response()->json([
+            'status' => 200,
             'course' => $course,
-            'message' => $message
+            'message' => 'At least one chapter is required to publish a course.'
         ], 200);
     }
+
+    // ✅ Removed: video requirement
+
+    $course->status = (int)$request->status;
+    $course->save();
+
+    $message = ($course->status == 1) ? 'Course published successfully' : 'Course unpublished successfully';
+
+    return response()->json([
+        'status' => 200,
+        'course' => $course,
+        'message' => $message
+    ], 200);
+}
 
     public function destroy($id, Request $request)
     {
@@ -303,7 +305,7 @@ class CourseController extends Controller
         'is_featured' => 'required|in:0,1'
     ]);
 
-    $course = Course::findOrFail($id);
+    $course->is_featured = $request->is_featured == 1 ? 'yes' : 'no';
 
     // Optional: Only admin can feature OR instructor can feature own course
     // if ($request->user()->role !== 'admin' && $course->user_id !== $request->user()->id) {

@@ -301,24 +301,47 @@ public function saveCourseImage($id, Request $request)
 
     public function changeFeatured(Request $request, $id)
 {
-    $request->validate([
-        'is_featured' => 'required|in:0,1'
-    ]);
+    try {
+        // 🔍 Debug log (optional but useful)
+        \Log::info("FEATURE REQUEST", $request->all());
 
-    $course = Course::findOrFail($id);
+        // ✅ Validate input
+        $request->validate([
+            'is_featured' => 'required|in:0,1'
+        ]);
 
-    // Optional: Only admin can feature OR instructor can feature own course
-    // if ($request->user()->role !== 'admin' && $course->user_id !== $request->user()->id) {
-    //     return response()->json(['status'=>403,'message'=>'Forbidden'],403);
-    // }
+        // ✅ Find course
+        $course = Course::findOrFail($id);
 
-    $course->is_featured = $request->is_featured;
-    $course->save();
+        // ✅ Optional: permission check (recommended)
+        if (!$this->canManageCourse($request, $course)) {
+            return response()->json([
+                'status' => 403,
+                'message' => 'Forbidden'
+            ], 403);
+        }
 
-    return response()->json([
-        'status' => 200,
-        'message' => 'Featured status updated',
-        'course' => $course
-    ]);
+        // ✅ Convert 0/1 → yes/no (matches your DB)
+        $course->is_featured = $request->is_featured == 1 ? 'yes' : 'no';
+
+        // ✅ Save
+        $course->save();
+
+        return response()->json([
+            'status' => 200,
+            'message' => 'Featured status updated',
+            'course' => $course
+        ], 200);
+
+    } catch (\Throwable $e) {
+        // ❗ Log actual error (VERY IMPORTANT)
+        \Log::error("FEATURE ERROR: " . $e->getMessage());
+
+        return response()->json([
+            'status' => 500,
+            'message' => 'Server Error',
+            'error' => $e->getMessage() // remove later in production
+        ], 500);
+    }
 }
 }
