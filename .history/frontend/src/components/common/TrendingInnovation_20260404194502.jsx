@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { apiUrl, token as configToken } from "./Config";
+import { apiUrl, getToken as configToken } from "./Config";
 import { AuthContext } from "../context/Auth";
 
 const css = `
@@ -205,9 +205,10 @@ const TrendingInnovation = ({
   category = "all",
 }) => {
   const { user } = useContext(AuthContext);
+
   const authToken = useMemo(
     () => user?.token || user?.user?.token || configToken,
-    [user]
+    [user],
   );
 
   const [loading, setLoading] = useState(true);
@@ -252,75 +253,90 @@ const TrendingInnovation = ({
   return (
     <>
       <style>{css}</style>
-      <section className='fti-section'>
-        <div className='fti-deco-blob fti-deco-blob-1' />
-        <div className='fti-deco-blob fti-deco-blob-2' />
+      <section className="fti-section">
+        <div className="fti-deco-blob fti-deco-blob-1" />
+        <div className="fti-deco-blob fti-deco-blob-2" />
 
-        <div className='container'>
+        <div className="container">
           {/* Header */}
-          <div className='fti-header'>
-            <div className='fti-header-left'>
-              <div className='fti-eyebrow'>Innovation Hub</div>
-              <h2 className='fti-title'>Top <em>Problems</em> to Solve</h2>
-              <p className='fti-subtitle'>{subtitle}</p>
+          <div className="fti-header">
+            <div className="fti-header-left">
+              <div className="fti-eyebrow">Innovation Hub</div>
+              <h2 className="fti-title">
+                Top <em>Problems</em> to Solve
+              </h2>
+              <p className="fti-subtitle">{subtitle}</p>
             </div>
-            <div className='fti-actions'>
+            {/* <div className='fti-actions'>
               <button className='fti-btn' onClick={fetchTrending} disabled={loading}>
                 {loading ? "Refreshing..." : "↻ Refresh"}
               </button>
               <Link className='fti-btn fti-btn-primary' to="/account/innovation/problems">
                 View All <span>→</span>
               </Link>
-            </div>
+            </div> */}
           </div>
 
           {/* Count */}
           {!loading && items.length > 0 && (
-            <div className='fti-count-strip'>
-              <span className='fti-count-chip'><b>{items.length}</b> trending problems</span>
+            <div className="fti-count-strip">
+              <span className="fti-count-chip">
+                <b>{items.length}</b> trending problems
+              </span>
             </div>
           )}
 
           {/* Grid */}
           {loading ? (
-            <div className='fti-grid'>
-              {[1,2,3,4,5,6].slice(0, limit).map(i => (
-                <div key={i} className='fti-skeleton' />
+            <div className="fti-grid">
+              {[1, 2, 3, 4, 5, 6].slice(0, limit).map((i) => (
+                <div key={i} className="fti-skeleton" />
               ))}
             </div>
           ) : items.length === 0 ? (
-            <div className='fti-empty'>
-              <span className='fti-empty-icon'>💡</span>
-              <p className='mb-0'>No trending problems yet.<br/>Be the first to post one!</p>
+            <div className="fti-empty">
+              <span className="fti-empty-icon">💡</span>
+              <p className="mb-0">
+                No trending problems yet.
+                <br />
+                Be the first to post one!
+              </p>
             </div>
           ) : (
-            <div className='fti-grid'>
+            <div className="fti-grid">
               {items.map((p, idx) => (
                 <div
                   key={p.id || p._id || idx}
-                  className='fti-card-wrap'
+                  className="fti-card-wrap"
                   style={{ animationDelay: `${idx * 0.06}s` }}
                 >
-                  <Link to={`/account/innovation/problem/${p.id}`} className='fti-card'>
-                    <div className='fti-card-badges'>
-                      <span className='fti-badge'>{p.category || "General"}</span>
-                      <span className={`fti-badge fti-badge-status ${p.status || 'open'}`}>
+                  <Link
+                    to={`/account/innovation/problem/${p.id}`}
+                    className="fti-card"
+                  >
+                    <div className="fti-card-badges">
+                      <span className="fti-badge">
+                        {p.category || "General"}
+                      </span>
+                      <span
+                        className={`fti-badge fti-badge-status ${p.status || "open"}`}
+                      >
                         {p.status || "open"}
                       </span>
                     </div>
-                    
-                    <h3 className='fti-card-title'>{p.title}</h3>
-                    
-                    <p className='fti-card-desc'>
+
+                    <h3 className="fti-card-title">{p.title}</h3>
+
+                    <p className="fti-card-desc">
                       {String(p.description || "").slice(0, 110)}
                       {String(p.description || "").length > 110 ? "…" : ""}
                     </p>
-                    
-                    <div className='fti-card-footer'>
-                      <span className='fti-card-author'>
+
+                    <div className="fti-card-footer">
+                      <span className="fti-card-author">
                         by {p.user?.name || "Unknown"}
                       </span>
-                      <span className='fti-card-action'>View Details →</span>
+                      <span className="fti-card-action">View Details →</span>
                     </div>
                   </Link>
                 </div>
