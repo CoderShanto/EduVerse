@@ -39,12 +39,10 @@ const Login = () => {
           user: result.user,
         };
 
-        // keep every key updated
-        localStorage.setItem("token", result.token);
-        localStorage.setItem("user", JSON.stringify(result.user));
-        localStorage.setItem("auth", JSON.stringify(authData));
+        // ✅ Save directly so protected pages can always read it
         localStorage.setItem("userInfoLms", JSON.stringify(authData));
 
+        // ✅ Keep context update too
         if (typeof login === "function") {
           login(authData);
         }
