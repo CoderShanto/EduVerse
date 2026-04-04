@@ -1,20 +1,19 @@
-import React, { useEffect, useReducer, useState } from 'react'
-import { useForm } from 'react-hook-form';
-import { apiUrl, token } from '../../../common/Config';
-import toast from 'react-hot-toast';
-import Accordion from 'react-bootstrap/Accordion';
-import UpdateChapter from './UpdateChapter';
-import { Link } from 'react-router-dom';
-import CreateLesson from './CreateLesson';
+import React, { useEffect, useReducer, useState } from "react";
+import { useForm } from "react-hook-form";
+import { apiUrl, getToken } from "../../../common/Config";
+import toast from "react-hot-toast";
+import Accordion from "react-bootstrap/Accordion";
+import UpdateChapter from "./UpdateChapter";
+import { Link } from "react-router-dom";
+import CreateLesson from "./CreateLesson";
 import { FaPlus } from "react-icons/fa";
 import { BsPencilSquare } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
-import LessonsSort from './LessonsSort';
-import SortChapters from './SortChapters';
+import LessonsSort from "./LessonsSort";
+import SortChapters from "./SortChapters";
 import { RiDragMove2Fill } from "react-icons/ri";
 
-
-const ManageChapter = ({course, params}) => {
+const ManageChapter = ({ course, params }) => {
   const [loading, setLoading] = useState(false);
   const {
     register,
@@ -53,25 +52,25 @@ const ManageChapter = ({course, params}) => {
 
   const chapterReducer = (state, action) => {
     switch (action.type) {
-      case 'SET_CHAPTERS':
+      case "SET_CHAPTERS":
         return action.payload;
-      case 'ADD_CHAPTER':
+      case "ADD_CHAPTER":
         return [...state, action.payload];
-      case 'UPDATE_CHAPTER':
-        return state.map(chapter => {
+      case "UPDATE_CHAPTER":
+        return state.map((chapter) => {
           if (chapter.id === action.payload.id) return action.payload;
           return chapter;
         });
-      case 'DELETE_CHAPTER':
-        return state.filter(chapter => chapter.id !== action.payload);
+      case "DELETE_CHAPTER":
+        return state.filter((chapter) => chapter.id !== action.payload);
 
       // ✅ NEW: Add a single lesson into the correct chapter instantly
-      case 'ADD_LESSON':
-        return state.map(chapter => {
+      case "ADD_LESSON":
+        return state.map((chapter) => {
           if (chapter.id === action.payload.chapter_id) {
             return {
               ...chapter,
-              lessons: [...(chapter.lessons || []), action.payload]
+              lessons: [...(chapter.lessons || []), action.payload],
             };
           }
           return chapter;
@@ -93,7 +92,7 @@ const ManageChapter = ({course, params}) => {
       headers: {
         "Content-type": "application/json",
         Accept: "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken}`,
       },
       body: JSON.stringify(formData),
     })
@@ -101,7 +100,7 @@ const ManageChapter = ({course, params}) => {
       .then((result) => {
         setLoading(false);
         if (result.status == 200) {
-          setChapters({ type: 'ADD_CHAPTER', payload: result.data });
+          setChapters({ type: "ADD_CHAPTER", payload: result.data });
           toast.success(result.message);
           reset();
         } else {
@@ -117,14 +116,14 @@ const ManageChapter = ({course, params}) => {
         headers: {
           "Content-type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken}`,
         },
       })
         .then((res) => res.json())
         .then((result) => {
           setLoading(false);
           if (result.status == 200) {
-            setChapters({ type: 'DELETE_CHAPTER', payload: id });
+            setChapters({ type: "DELETE_CHAPTER", payload: id });
             toast.success(result.message);
           } else {
             console.log("Something went wrong");
@@ -140,14 +139,14 @@ const ManageChapter = ({course, params}) => {
         headers: {
           "Content-type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken}`,
         },
       })
         .then((res) => res.json())
         .then((result) => {
           setLoading(false);
           if (result.status == 200) {
-            setChapters({ type: 'UPDATE_CHAPTER', payload: result.chapter });
+            setChapters({ type: "UPDATE_CHAPTER", payload: result.chapter });
             toast.success(result.message);
           } else {
             console.log("Something went wrong");
@@ -158,12 +157,12 @@ const ManageChapter = ({course, params}) => {
 
   // ✅ Called by CreateLesson after a lesson is successfully created
   const handleLessonCreated = (newLesson) => {
-    setChapters({ type: 'ADD_LESSON', payload: newLesson });
+    setChapters({ type: "ADD_LESSON", payload: newLesson });
   };
 
   useEffect(() => {
     if (course.chapters) {
-      setChapters({ type: 'SET_CHAPTERS', payload: course.chapters });
+      setChapters({ type: "SET_CHAPTERS", payload: course.chapters });
     }
   }, [course]);
 
@@ -172,14 +171,19 @@ const ManageChapter = ({course, params}) => {
       <div className="card border-0 shadow-lg mt-4">
         <div className="card-body p-4">
           <div className="d-flex">
-            <div className='d-flex justify-content-between w-100'>
+            <div className="d-flex justify-content-between w-100">
               <h4 className="h5 mb-4">Chapters</h4>
               <div>
                 <Link onClick={() => handleShowLessonModel()}>
-                  <FaPlus size={12} /><strong> Create Lesson</strong>
+                  <FaPlus size={12} />
+                  <strong> Create Lesson</strong>
                 </Link>
-                <Link className='ms-2' onClick={() => handleShowChapterSortModal()}>
-                  <RiDragMove2Fill /><strong> Reorder Chapters</strong>
+                <Link
+                  className="ms-2"
+                  onClick={() => handleShowChapterSortModal()}
+                >
+                  <RiDragMove2Fill />
+                  <strong> Reorder Chapters</strong>
                 </Link>
               </div>
             </div>
@@ -188,13 +192,17 @@ const ManageChapter = ({course, params}) => {
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-3">
               <input
-                {...register("chapter", { required: "The chapter field is required" })}
+                {...register("chapter", {
+                  required: "The chapter field is required",
+                })}
                 type="text"
                 className={`form-control ${errors.chapter && "is-invalid"}`}
                 placeholder="chapter"
               />
               {errors.chapter && (
-                <p className="invalid-feedback text-danger">{errors.chapter.message}</p>
+                <p className="invalid-feedback text-danger">
+                  {errors.chapter.message}
+                </p>
               )}
               <button disabled={loading} className="btn btn-primary mt-3">
                 {loading == false ? "save" : "Please wait..."}
@@ -207,52 +215,72 @@ const ManageChapter = ({course, params}) => {
               <Accordion.Item key={chapter.id} eventKey={index}>
                 <Accordion.Header>{chapter.title}</Accordion.Header>
                 <Accordion.Body>
-                  <div className='row'>
-                    <div className='col-md-12'>
+                  <div className="row">
+                    <div className="col-md-12">
                       <div className="d-flex justify-content-between mb-2 mt-4">
                         <h4 className="h5">Lessons</h4>
-                        <Link className="h6" onClick={() => handleShowLessonSortModal(chapter.lessons)}>
-                          <RiDragMove2Fill /><strong> Reorder Lessons</strong>
+                        <Link
+                          className="h6"
+                          onClick={() =>
+                            handleShowLessonSortModal(chapter.lessons)
+                          }
+                        >
+                          <RiDragMove2Fill />
+                          <strong> Reorder Lessons</strong>
                         </Link>
                       </div>
                     </div>
 
-                    <div className='col-md-12'>
-                      {chapter.lessons && chapter.lessons.map(lesson => (
-                        <div key={lesson.id} className='card shadow px-3 py-2 mb-2 rounded'>
-                          <div className='row'>
-                            <div className='col-md-7'>
-                              {lesson.title}
-                            </div>
-                            <div className='col-md-5 text-end'>
-                              {lesson.duration > 0 && (
-                                <small className='fw-bold text-muted me-2'>20 Mins</small>
-                              )}
-                              {lesson.is_free_preview == "yes" && (
-                                <span className='badge bg-success'>Preview</span>
-                              )}
-                              <Link to={`/account/courses/edit-lesson/${lesson.id}/${course.id}`} className='ms-2'>
-                                <BsPencilSquare />
-                              </Link>
-                              <Link onClick={() => deleteLesson(lesson.id)} className='ms-2 text-danger'>
-                                <FaTrashAlt />
-                              </Link>
+                    <div className="col-md-12">
+                      {chapter.lessons &&
+                        chapter.lessons.map((lesson) => (
+                          <div
+                            key={lesson.id}
+                            className="card shadow px-3 py-2 mb-2 rounded"
+                          >
+                            <div className="row">
+                              <div className="col-md-7">{lesson.title}</div>
+                              <div className="col-md-5 text-end">
+                                {lesson.duration > 0 && (
+                                  <small className="fw-bold text-muted me-2">
+                                    20 Mins
+                                  </small>
+                                )}
+                                {lesson.is_free_preview == "yes" && (
+                                  <span className="badge bg-success">
+                                    Preview
+                                  </span>
+                                )}
+                                <Link
+                                  to={`/account/courses/edit-lesson/${lesson.id}/${course.id}`}
+                                  className="ms-2"
+                                >
+                                  <BsPencilSquare />
+                                </Link>
+                                <Link
+                                  onClick={() => deleteLesson(lesson.id)}
+                                  className="ms-2 text-danger"
+                                >
+                                  <FaTrashAlt />
+                                </Link>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
                     </div>
 
-                    <div className='col-md-12 mt-3'>
-                      <div className='d-flex'>
+                    <div className="col-md-12 mt-3">
+                      <div className="d-flex">
                         <button
                           onClick={() => deleteChapter(chapter.id)}
-                          className='btn btn-danger btn-sm shadow-lg'>
+                          className="btn btn-danger btn-sm shadow-lg"
+                        >
                           Delete Chapter
                         </button>
                         <button
                           onClick={() => handleShow(chapter)}
-                          className='btn btn-primary btn-sm ms-2 shadow-lg'>
+                          className="btn btn-primary btn-sm ms-2 shadow-lg"
+                        >
                           Update Chapter
                         </button>
                       </div>

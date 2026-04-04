@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useParams } from "react-router-dom";
-import { apiUrl, getToken } from "../../../common/Config";
+import { apiUrl, token } from "../../../common/Config";
 import toast from "react-hot-toast";
 import { MdDragIndicator } from "react-icons/md";
 import { BsPencilSquare } from "react-icons/bs";
@@ -21,13 +21,13 @@ const ManageRequirement = () => {
   } = useForm();
   const params = useParams();
 
-  const [showRequirement, setShowRequirement] = useState(false);
-
-  const handleClose = () => setShowRequirement(false);
-  const handleShow = (requirement) => {
-    setShowRequirement(true);
-    setRequirementData(requirement);
-  };
+   const [showRequirement, setShowRequirement] = useState(false);
+  
+    const handleClose = () => setShowRequirement(false);
+    const handleShow = (requirement) => {
+      setShowRequirement(true);
+      setRequirementData(requirement);
+    };
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -38,7 +38,7 @@ const ManageRequirement = () => {
       headers: {
         "Content-type": "application/json",
         Accept: "application/json",
-        Authorization: `Bearer ${getToken}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(formData),
     })
@@ -66,9 +66,13 @@ const ManageRequirement = () => {
 
     setRequirements(reorderedItems);
     saveOrder(reorderedItems);
-  };
+};
 
-  const saveOrder = async (updatedRequirements) => {
+const saveOrder = async (updatedRequirements) => {
+     
+           
+   
+
     await fetch(`${apiUrl}/sort-requirements`, {
       method: "POST",
       headers: {
@@ -76,17 +80,21 @@ const ManageRequirement = () => {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ requirements: updatedRequirements }),
+      body: JSON.stringify({requirements: updatedRequirements}),
     })
       .then((res) => res.json())
       .then((result) => {
+       
+
         if (result.status == 200) {
+          
           toast.success(result.message);
         } else {
           console.log("Something went wrong");
         }
       });
-  };
+
+ }
 
   const fetchRequirement = async () => {
     await fetch(`${apiUrl}/requirements?course_id=${params.id}`, {
@@ -94,7 +102,7 @@ const ManageRequirement = () => {
       headers: {
         "Content-type": "application/json",
         Accept: "application/json",
-        Authorization: `Bearer ${getToken}`,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => res.json())
@@ -107,14 +115,14 @@ const ManageRequirement = () => {
       });
   };
 
-  const deleteRequirement = async (id) => {
+ const deleteRequirement = async (id) => {
     if (confirm("Are you sure you want to delete this requirement?")) {
       await fetch(`${apiUrl}/requirements/${id}`, {
         method: "DELETE",
         headers: {
           "Content-type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${getToken}`,
+          Authorization: `Bearer ${token}`,
         },
       })
         .then((res) => res.json())
@@ -122,9 +130,7 @@ const ManageRequirement = () => {
           setLoading(false);
 
           if (result.status == 200) {
-            const newRequirements = requirements.filter(
-              (requirement) => requirement.id !== id,
-            );
+            const newRequirements = requirements.filter((requirement) => requirement.id !== id);
             setRequirements(newRequirements);
             toast.success(result.message);
           } else {
@@ -167,68 +173,62 @@ const ManageRequirement = () => {
             </div>
           </form>
 
-          <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="list">
-              {(provided) => (
-                <div
-                  {...provided.droppableProps}
-                  ref={provided.innerRef}
-                  className="space-y-2"
-                >
-                  {requirements.map((requirement, index) => (
-                    <Draggable
-                      key={requirement.id}
-                      draggableId={`${requirement.id}`}
-                      index={index}
-                    >
-                      {(provided) => (
-                        <div
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className="mt-2 border bg-white shadow-lg  rounded"
+          <DragDropContext onDragEnd={handleDragEnd} >
+    <Droppable droppableId="list">
+        {(provided) => (
+            <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
+                {
+                requirements.map((requirement, index) => (
+                        <Draggable key={requirement.id} draggableId={`${requirement.id}`} index={index}>
+
+                        {(provided) => (
+                            <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                className="mt-2 border bg-white shadow-lg  rounded"
+                            >
+
+                                <div className="card-body p-2 d-flex">
+                    <div>
+                      <MdDragIndicator />
+                    </div>
+                    <div className="d-flex justify-content-between w-100">
+                      <div className="ps-2">{requirement.text}</div>
+                      <div className="d-flex">
+                        <Link
+                          onClick={() => handleShow(requirement)}
+                          className="text-primary me-1"
                         >
-                          <div className="card-body p-2 d-flex">
-                            <div>
-                              <MdDragIndicator />
+                          <BsPencilSquare />
+                        </Link>
+                        <Link
+                          onClick={() => deleteRequirement(requirement.id)}
+                          className="text-danger"
+                        >
+                          <FaTrashAlt />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
                             </div>
-                            <div className="d-flex justify-content-between w-100">
-                              <div className="ps-2">{requirement.text}</div>
-                              <div className="d-flex">
-                                <Link
-                                  onClick={() => handleShow(requirement)}
-                                  className="text-primary me-1"
-                                >
-                                  <BsPencilSquare />
-                                </Link>
-                                <Link
-                                  onClick={() =>
-                                    deleteRequirement(requirement.id)
-                                  }
-                                  className="text-danger"
-                                >
-                                  <FaTrashAlt />
-                                </Link>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                        )}
                     </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </DragDropContext>
+                ))}
+                {provided.placeholder}
+            </div>
+        )}
+    </Droppable>
+</DragDropContext> 
+
         </div>
       </div>
-      <UpdateRequirement
-        showRequirement={showRequirement}
-        requirements={requirements}
-        setRequirements={setRequirements}
-        requirementData={requirementData}
-        handleClose={handleClose}
+      <UpdateRequirement 
+      showRequirement={showRequirement}
+      requirements={requirements}
+      setRequirements={setRequirements}
+      requirementData={requirementData}
+      handleClose={handleClose}
       />
     </>
   );

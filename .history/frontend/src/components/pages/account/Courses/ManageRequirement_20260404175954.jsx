@@ -94,7 +94,7 @@ const ManageRequirement = () => {
       headers: {
         "Content-type": "application/json",
         Accept: "application/json",
-        Authorization: `Bearer ${getToken}`,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => res.json())
@@ -114,7 +114,7 @@ const ManageRequirement = () => {
         headers: {
           "Content-type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${getToken}`,
+          Authorization: `Bearer ${token}`,
         },
       })
         .then((res) => res.json())
