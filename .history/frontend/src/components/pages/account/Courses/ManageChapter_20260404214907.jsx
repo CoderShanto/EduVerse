@@ -139,7 +139,7 @@ const ManageChapter = ({ course, params }) => {
         headers: {
           "Content-type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${getToken()}`,
+          Authorization: `Bearer ${getToken}`,
         },
       })
         .then((res) => res.json())

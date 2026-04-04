@@ -1,12 +1,16 @@
-import React, { useEffect, useState } from "react";
-import Button from "react-bootstrap/Button";
+import React, { useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import { useForm } from "react-hook-form";
-import { apiUrl, token } from "../../../common/Config";
+import { apiUrl, getToken } from "../../../common/Config";
 import toast from "react-hot-toast";
 
-const CreateLesson = ({ course, showLessonModel, handleCloseLessonModel, chapters, onLessonCreated }) => {
-
+const CreateLesson = ({
+  course,
+  showLessonModel,
+  handleCloseLessonModel,
+  chapters,
+  onLessonCreated,
+}) => {
   const {
     register,
     handleSubmit,
@@ -24,24 +28,22 @@ const CreateLesson = ({ course, showLessonModel, handleCloseLessonModel, chapter
       headers: {
         "Content-type": "application/json",
         Accept: "application/json",
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${getToken()}`,
       },
       body: JSON.stringify(data),
     })
       .then((res) => res.json())
       .then((result) => {
         setLoading(false);
-
         if (result.status == 200) {
           toast.success(result.message);
           reset({ chapter: "", lesson: "", status: "1" });
           handleCloseLessonModel();
 
-          // ✅ Tell the parent a new lesson was created so it can update instantly
+          // ✅ Instantly update the lesson list in ManageChapter — no refresh needed
           if (onLessonCreated) {
             onLessonCreated(result.data);
           }
-
         } else {
           toast.error(result.message || "Something went wrong");
         }
@@ -59,36 +61,49 @@ const CreateLesson = ({ course, showLessonModel, handleCloseLessonModel, chapter
             <div className="mb-3">
               <label className="form-label">Chapter</label>
               <select
-                {...register("chapter", { required: "Please select a chapter" })}
+                {...register("chapter", {
+                  required: "Please select a chapter",
+                })}
                 className={`form-select ${errors.chapter && "is-invalid"}`}
               >
                 <option value="">Select Chapter</option>
-                {chapters && chapters.map(chapter => (
-                  <option key={chapter.id} value={chapter.id}>{chapter.title}</option>
-                ))}
+                {chapters &&
+                  chapters.map((chapter) => (
+                    <option key={chapter.id} value={chapter.id}>
+                      {chapter.title}
+                    </option>
+                  ))}
               </select>
               {errors.chapter && (
-                <p className="invalid-feedback text-danger">{errors.chapter.message}</p>
+                <p className="invalid-feedback text-danger">
+                  {errors.chapter.message}
+                </p>
               )}
             </div>
 
             <div className="mb-3">
               <label className="form-label">Lesson</label>
               <input
-                {...register("lesson", { required: "The Lesson field is required" })}
+                {...register("lesson", {
+                  required: "The Lesson field is required",
+                })}
                 type="text"
                 className={`form-control ${errors.lesson && "is-invalid"}`}
                 placeholder="Lesson"
               />
               {errors.lesson && (
-                <p className="invalid-feedback text-danger">{errors.lesson.message}</p>
+                <p className="invalid-feedback text-danger">
+                  {errors.lesson.message}
+                </p>
               )}
             </div>
 
             <div>
               <label className="form-label">Status</label>
               <select
-                {...register("status", { required: "The Status field is required" })}
+                {...register("status", {
+                  required: "The Status field is required",
+                })}
                 className="form-select"
               >
                 <option value="1">Active</option>

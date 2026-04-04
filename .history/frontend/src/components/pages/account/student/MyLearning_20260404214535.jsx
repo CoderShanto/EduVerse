@@ -124,7 +124,7 @@ const MyLearning = () => {
           headers: {
             "Content-type": "application/json",
             Accept: "application/json",
-            Authorization: `Bearer ${getToken() || ""}`,
+            Authorization: `Bearer ${getToken()}`,
           },
         });
         const result = await res.json();

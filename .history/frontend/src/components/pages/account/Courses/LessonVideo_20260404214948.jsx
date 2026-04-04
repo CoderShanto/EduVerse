@@ -5,14 +5,14 @@ import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orien
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
-import { apiUrl, token } from "../../../common/Config";
+import { apiUrl, getToken } from "../../../common/Config";
 import toast from "react-hot-toast";
 import ReactPlayer from "react-player";
 
 registerPlugin(
   FilePondPluginImageExifOrientation,
   FilePondPluginImagePreview,
-  FilePondPluginFileValidateType
+  FilePondPluginFileValidateType,
 );
 
 const LessonVideo = ({ lesson, onUploaded }) => {
@@ -42,7 +42,13 @@ const LessonVideo = ({ lesson, onUploaded }) => {
         </div>
 
         <FilePond
-          acceptedFileTypes={["video/mp4", "video/mov", "video/webm", "video/avi", "video/x-matroska"]}
+          acceptedFileTypes={[
+            "video/mp4",
+            "video/mov",
+            "video/webm",
+            "video/avi",
+            "video/x-matroska",
+          ]}
           credits={false}
           files={files}
           onupdatefiles={setFiles}
@@ -51,9 +57,10 @@ const LessonVideo = ({ lesson, onUploaded }) => {
           server={{
             process: {
               url: `${apiUrl}/save-lesson-video/${lesson.id}`,
+
               method: "POST",
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${getToken()}`,
                 Accept: "application/json",
               },
               onload: (response) => {

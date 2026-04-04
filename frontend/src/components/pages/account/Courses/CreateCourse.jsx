@@ -30,7 +30,7 @@ const CreateCourse = () => {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken()}`,
         },
         body: JSON.stringify(data),
       });
@@ -97,7 +97,9 @@ const CreateCourse = () => {
                           placeholder="Title"
                         />
                         {errors.title && (
-                          <p className="invalid-feedback">{errors.title.message}</p>
+                          <p className="invalid-feedback">
+                            {errors.title.message}
+                          </p>
                         )}
                       </div>
 
