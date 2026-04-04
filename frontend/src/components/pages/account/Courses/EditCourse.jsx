@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Layout from "../../../common/Layout";
 import { Link, useParams } from "react-router-dom";
 import UserSidebar from "../../../common/UserSidebar";
-import { apiUrl, token } from "../../../common/Config";
+import { apiUrl } from "../../../common/Config";
 import toast from "react-hot-toast";
 import { useForm } from "react-hook-form";
 import ManageOutcome from "./ManageOutcome";
@@ -210,7 +210,11 @@ const EditCourse = () => {
       const result = await res.json();
 
       if (result?.status === 200) {
-        toast.success(newVal === 1 ? "⭐ Course marked as featured" : "Course removed from featured");
+        toast.success(
+          newVal === 1
+            ? "⭐ Course marked as featured"
+            : "Course removed from featured",
+        );
         setCourse((prev) => ({ ...prev, is_featured: newVal }));
       } else {
         console.log("FEATURE ERROR =>", result);
@@ -256,7 +260,11 @@ const EditCourse = () => {
                     className={`btn ${isFeatured ? "btn-warning" : "btn-outline-warning"}`}
                     type="button"
                   >
-                    {featureLoading ? "Please wait..." : isFeatured ? "⭐ Featured" : "☆ Set Featured"}
+                    {featureLoading
+                      ? "Please wait..."
+                      : isFeatured
+                        ? "⭐ Featured"
+                        : "☆ Set Featured"}
                   </button>
 
                   {/* Publish / Unpublish */}
@@ -266,7 +274,11 @@ const EditCourse = () => {
                     className={`btn ${isPublished ? "btn-warning" : "btn-success"}`}
                     type="button"
                   >
-                    {statusLoading ? "Please wait..." : isPublished ? "⏸ Unpublish" : "🚀 Publish"}
+                    {statusLoading
+                      ? "Please wait..."
+                      : isPublished
+                        ? "⏸ Unpublish"
+                        : "🚀 Publish"}
                   </button>
 
                   <Link to="/account/my-courses" className="btn btn-dark">
@@ -276,9 +288,13 @@ const EditCourse = () => {
               </div>
 
               {!isPublished && courseLoaded && (
-                <div className="alert alert-warning mt-3 mb-0 py-2 px-3" style={{ fontSize: 13 }}>
-                  ⚠️ This course is <strong>unpublished</strong>. To publish it, make sure you have added at least{" "}
-                  <strong>one chapter</strong> and <strong>one lesson with a video</strong>.
+                <div
+                  className="alert alert-warning mt-3 mb-0 py-2 px-3"
+                  style={{ fontSize: 13 }}
+                >
+                  ⚠️ This course is <strong>unpublished</strong>. To publish it,
+                  make sure you have added at least <strong>one chapter</strong>{" "}
+                  and <strong>one lesson with a video</strong>.
                 </div>
               )}
             </div>
@@ -293,7 +309,9 @@ const EditCourse = () => {
                   <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="card border-0 shadow-lg">
                       <div className="card-body p-4">
-                        <h4 className="h5 border-bottom pb-3 mb-4">Course Details</h4>
+                        <h4 className="h5 border-bottom pb-3 mb-4">
+                          Course Details
+                        </h4>
 
                         <div className="mb-3">
                           <label className="form-label" htmlFor="title">
@@ -301,12 +319,18 @@ const EditCourse = () => {
                           </label>
                           <input
                             type="text"
-                            {...register("title", { required: "The title field is required" })}
+                            {...register("title", {
+                              required: "The title field is required",
+                            })}
                             className={`form-control ${errors.title ? "is-invalid" : ""}`}
                             placeholder="Title"
                             id="title"
                           />
-                          {errors.title && <p className="invalid-feedback">{errors.title.message}</p>}
+                          {errors.title && (
+                            <p className="invalid-feedback">
+                              {errors.title.message}
+                            </p>
+                          )}
                         </div>
 
                         <div className="mb-3">
@@ -316,7 +340,9 @@ const EditCourse = () => {
                           <select
                             className={`form-select ${errors.category ? "is-invalid" : ""}`}
                             id="category"
-                            {...register("category", { required: "The category field is required" })}
+                            {...register("category", {
+                              required: "The category field is required",
+                            })}
                           >
                             <option value="">Select a Category</option>
                             {categories.map((c) => (
@@ -325,7 +351,11 @@ const EditCourse = () => {
                               </option>
                             ))}
                           </select>
-                          {errors.category && <p className="invalid-feedback">{errors.category.message}</p>}
+                          {errors.category && (
+                            <p className="invalid-feedback">
+                              {errors.category.message}
+                            </p>
+                          )}
                         </div>
 
                         <div className="mb-3">
@@ -335,7 +365,9 @@ const EditCourse = () => {
                           <select
                             className={`form-select ${errors.level ? "is-invalid" : ""}`}
                             id="level"
-                            {...register("level", { required: "The level field is required" })}
+                            {...register("level", {
+                              required: "The level field is required",
+                            })}
                           >
                             <option value="">Select a level</option>
                             {levels.map((l) => (
@@ -344,7 +376,11 @@ const EditCourse = () => {
                               </option>
                             ))}
                           </select>
-                          {errors.level && <p className="invalid-feedback">{errors.level.message}</p>}
+                          {errors.level && (
+                            <p className="invalid-feedback">
+                              {errors.level.message}
+                            </p>
+                          )}
                         </div>
 
                         <div className="mb-3">
@@ -354,7 +390,9 @@ const EditCourse = () => {
                           <select
                             className={`form-select ${errors.language ? "is-invalid" : ""}`}
                             id="language"
-                            {...register("language", { required: "The language field is required" })}
+                            {...register("language", {
+                              required: "The language field is required",
+                            })}
                           >
                             <option value="">Select a language</option>
                             {languages.map((lang) => (
@@ -363,7 +401,11 @@ const EditCourse = () => {
                               </option>
                             ))}
                           </select>
-                          {errors.language && <p className="invalid-feedback">{errors.language.message}</p>}
+                          {errors.language && (
+                            <p className="invalid-feedback">
+                              {errors.language.message}
+                            </p>
+                          )}
                         </div>
 
                         <div className="mb-3">
@@ -387,12 +429,18 @@ const EditCourse = () => {
                           </label>
                           <input
                             type="text"
-                            {...register("sell_price", { required: "The sell price field is required" })}
+                            {...register("sell_price", {
+                              required: "The sell price field is required",
+                            })}
                             className={`form-control ${errors.sell_price ? "is-invalid" : ""}`}
                             placeholder="Sell Price"
                             id="sell-price"
                           />
-                          {errors.sell_price && <p className="invalid-feedback">{errors.sell_price.message}</p>}
+                          {errors.sell_price && (
+                            <p className="invalid-feedback">
+                              {errors.sell_price.message}
+                            </p>
+                          )}
                         </div>
 
                         <div className="mb-3">
@@ -408,7 +456,11 @@ const EditCourse = () => {
                           />
                         </div>
 
-                        <button disabled={loading} className="btn btn-primary" type="submit">
+                        <button
+                          disabled={loading}
+                          className="btn btn-primary"
+                          type="submit"
+                        >
                           {loading ? "Please wait..." : "Update"}
                         </button>
                       </div>
