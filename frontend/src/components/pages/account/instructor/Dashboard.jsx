@@ -1,10 +1,10 @@
-import React, { useContext, useEffect, useState } from 'react'
-import Layout from '../../../common/Layout'
-import UserSidebar from '../../../common/UserSidebar'
-import { Link } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { apiUrl, token as configToken } from '../../../common/Config'
-import { AuthContext } from '../../../context/Auth'
+import React, { useContext, useEffect, useState } from "react";
+import Layout from "../../../common/Layout";
+import UserSidebar from "../../../common/UserSidebar";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { apiUrl, getToken as configToken } from "../../../common/Config";
+import { AuthContext } from "../../../context/Auth";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -294,179 +294,224 @@ const css = `
     .id-banner { flex-direction: column; align-items: flex-start; }
     .id-banner-actions { flex-wrap: wrap; }
   }
-`
+`;
 
 const Dashboard = () => {
-  const { user } = useContext(AuthContext)
-  const authToken = user?.token || user?.user?.token || configToken
-  const userName = user?.user?.name || user?.name || 'Instructor'
+  const { user } = useContext(AuthContext);
+  const authToken = user?.token || user?.user?.token || configToken;
+  const userName = user?.user?.name || user?.name || "Instructor";
 
-  const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
 
   const load = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const res = await fetch(`${apiUrl}/instructor/dashboard/stats`, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      })
-      const result = await res.json()
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const result = await res.json();
       if (result.status === 200) {
-        setStats(result.data)
+        setStats(result.data);
       } else {
-        toast.error(result.message || 'Failed to load instructor stats')
+        toast.error(result.message || "Failed to load instructor stats");
       }
     } catch (e) {
-      console.log(e)
-      toast.error('Server error loading instructor dashboard')
+      console.log(e);
+      toast.error("Server error loading instructor dashboard");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    if (authToken) load()
+    if (authToken) load();
     // eslint-disable-next-line
-  }, [authToken])
+  }, [authToken]);
 
   const initials = (name) =>
-    (name || 'S').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
+    (name || "S")
+      .split(" ")
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
 
   return (
     <Layout>
       <style>{css}</style>
 
       {/* blobs */}
-      <div className='id-blob-wrap'>
-        <div className='id-blob id-blob-1' />
-        <div className='id-blob id-blob-2' />
+      <div className="id-blob-wrap">
+        <div className="id-blob id-blob-1" />
+        <div className="id-blob id-blob-2" />
       </div>
 
-      <div className='id-root'>
-        <div className='container id-inner'>
-
+      <div className="id-root">
+        <div className="container id-inner">
           {/* breadcrumb */}
-          <nav className='id-bc'>
-            <Link to='/account'>Account</Link>
+          <nav className="id-bc">
+            <Link to="/account">Account</Link>
             <span>›</span>
             <span>Instructor Dashboard</span>
           </nav>
 
-          <div className='row'>
+          <div className="row">
             {/* sidebar */}
-            <div className='col-lg-3 account-sidebar mb-4'>
+            <div className="col-lg-3 account-sidebar mb-4">
               <UserSidebar />
             </div>
 
-            <div className='col-lg-9'>
-
+            <div className="col-lg-9">
               {/* ── Banner ── */}
-              <div className='id-banner mb-4'>
-                <div className='id-banner-deco d1' />
-                <div className='id-banner-deco d2' />
-                <div className='id-banner-left'>
-                  <div className='id-banner-icon'>🎓</div>
+              <div className="id-banner mb-4">
+                <div className="id-banner-deco d1" />
+                <div className="id-banner-deco d2" />
+                <div className="id-banner-left">
+                  <div className="id-banner-icon">🎓</div>
                   <div>
-                    <h2 className='id-banner-title'>Instructor Dashboard</h2>
-                    <p className='id-banner-sub'>Track your course performance and recent enrollments.</p>
+                    <h2 className="id-banner-title">Instructor Dashboard</h2>
+                    <p className="id-banner-sub">
+                      Track your course performance and recent enrollments.
+                    </p>
                   </div>
                 </div>
-                <div className='id-banner-actions'>
-                  <Link to='/account/courses/create' className='id-btn-white'>+ Create Course</Link>
-                  <Link to='/account/my-courses' className='id-btn-ghost'>My Courses →</Link>
+                <div className="id-banner-actions">
+                  <Link to="/account/courses/create" className="id-btn-white">
+                    + Create Course
+                  </Link>
+                  <Link to="/account/my-courses" className="id-btn-ghost">
+                    My Courses →
+                  </Link>
                 </div>
               </div>
 
               {/* ── Content ── */}
               {loading ? (
-                <div className='id-stats-row mb-4'>
-                  {[1,2,3,4,5].map(i => <div key={i} className='id-skeleton' />)}
+                <div className="id-stats-row mb-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="id-skeleton" />
+                  ))}
                 </div>
               ) : !stats ? (
-                <div className='alert alert-danger'>No stats found.</div>
+                <div className="alert alert-danger">No stats found.</div>
               ) : (
                 <>
                   {/* Stat cards */}
-                  <div className='id-stats-row mb-4'>
-                    <div className='id-stat s-blue'>
-                      <div className='id-stat-icon'>📚</div>
-                      <div className='id-stat-num'>{stats.total_courses ?? 0}</div>
-                      <div className='id-stat-label'>Total Courses</div>
-                      <div className='id-stat-hint'>All courses you created</div>
-                      <Link to='/account/my-courses' className='id-stat-link'>Manage →</Link>
+                  <div className="id-stats-row mb-4">
+                    <div className="id-stat s-blue">
+                      <div className="id-stat-icon">📚</div>
+                      <div className="id-stat-num">
+                        {stats.total_courses ?? 0}
+                      </div>
+                      <div className="id-stat-label">Total Courses</div>
+                      <div className="id-stat-hint">
+                        All courses you created
+                      </div>
+                      <Link to="/account/my-courses" className="id-stat-link">
+                        Manage →
+                      </Link>
                     </div>
 
-                    <div className='id-stat s-green'>
-                      <div className='id-stat-icon'>✅</div>
-                      <div className='id-stat-num'>{stats.active_courses ?? 0}</div>
-                      <div className='id-stat-label'>Active Courses</div>
-                      <div className='id-stat-hint'>Published &amp; visible</div>
-                      <Link to='/account/my-courses' className='id-stat-link'>View →</Link>
+                    <div className="id-stat s-green">
+                      <div className="id-stat-icon">✅</div>
+                      <div className="id-stat-num">
+                        {stats.active_courses ?? 0}
+                      </div>
+                      <div className="id-stat-label">Active Courses</div>
+                      <div className="id-stat-hint">
+                        Published &amp; visible
+                      </div>
+                      <Link to="/account/my-courses" className="id-stat-link">
+                        View →
+                      </Link>
                     </div>
 
-                    <div className='id-stat s-yellow'>
-                      <div className='id-stat-icon'>👥</div>
-                      <div className='id-stat-num'>{stats.total_enrollments ?? 0}</div>
-                      <div className='id-stat-label'>Enrollments</div>
-                      <div className='id-stat-hint'>Students enrolled</div>
+                    <div className="id-stat s-yellow">
+                      <div className="id-stat-icon">👥</div>
+                      <div className="id-stat-num">
+                        {stats.total_enrollments ?? 0}
+                      </div>
+                      <div className="id-stat-label">Enrollments</div>
+                      <div className="id-stat-hint">Students enrolled</div>
                     </div>
 
-                    <div className='id-stat s-purple'>
-                      <div className='id-stat-icon'>⭐</div>
-                      <div className='id-stat-num'>{stats.avg_rating ?? '—'}</div>
-                      <div className='id-stat-label'>Avg Rating</div>
-                      <div className='id-stat-hint'>Across all courses</div>
+                    <div className="id-stat s-purple">
+                      <div className="id-stat-icon">⭐</div>
+                      <div className="id-stat-num">
+                        {stats.avg_rating ?? "—"}
+                      </div>
+                      <div className="id-stat-label">Avg Rating</div>
+                      <div className="id-stat-hint">Across all courses</div>
                     </div>
 
-                    <div className='id-stat s-orange'>
-                      <div className='id-stat-icon'>💬</div>
-                      <div className='id-stat-num'>{stats.total_reviews ?? 0}</div>
-                      <div className='id-stat-label'>Reviews</div>
-                      <div className='id-stat-hint'>All course reviews</div>
+                    <div className="id-stat s-orange">
+                      <div className="id-stat-icon">💬</div>
+                      <div className="id-stat-num">
+                        {stats.total_reviews ?? 0}
+                      </div>
+                      <div className="id-stat-label">Reviews</div>
+                      <div className="id-stat-hint">All course reviews</div>
                     </div>
                   </div>
 
                   {/* Recent enrollments */}
-                  <div className='id-card'>
-                    <p className='id-card-title'>
-                      <span className='id-card-dot' style={{ background: 'var(--blue)' }} />
+                  <div className="id-card">
+                    <p className="id-card-title">
+                      <span
+                        className="id-card-dot"
+                        style={{ background: "var(--blue)" }}
+                      />
                       Recent Enrollments
-                      <span className='id-badge-count'>Last 5</span>
+                      <span className="id-badge-count">Last 5</span>
                     </p>
 
                     {stats.recent_enrollments?.length ? (
                       stats.recent_enrollments.map((r) => (
-                        <div key={r.id} className='id-enroll-row'>
-                          <div className='id-enroll-avatar'>
+                        <div key={r.id} className="id-enroll-row">
+                          <div className="id-enroll-avatar">
                             {initials(r.student_name)}
                           </div>
-                          <div className='id-enroll-info'>
-                            <div className='id-enroll-name'>{r.student_name}</div>
-                            <div className='id-enroll-email'>{r.student_email}</div>
+                          <div className="id-enroll-info">
+                            <div className="id-enroll-name">
+                              {r.student_name}
+                            </div>
+                            <div className="id-enroll-email">
+                              {r.student_email}
+                            </div>
                           </div>
-                          <div className='id-enroll-course'>{r.course_title}</div>
-                          <div className='id-enroll-date'>
+                          <div className="id-enroll-course">
+                            {r.course_title}
+                          </div>
+                          <div className="id-enroll-date">
                             {r.created_at
-                              ? new Date(r.created_at).toLocaleDateString('en-US', {
-                                  month: 'short', day: 'numeric', year: 'numeric'
-                                })
-                              : '—'}
+                              ? new Date(r.created_at).toLocaleDateString(
+                                  "en-US",
+                                  {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  },
+                                )
+                              : "—"}
                           </div>
                         </div>
                       ))
                     ) : (
-                      <div className='id-empty'>No enrollments yet.</div>
+                      <div className="id-empty">No enrollments yet.</div>
                     )}
                   </div>
                 </>
               )}
-
             </div>
           </div>
         </div>
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;
