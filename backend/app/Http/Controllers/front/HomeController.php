@@ -69,68 +69,140 @@ class HomeController extends Controller
             'data' => $courses
         ],200);
     }
-    public function courses(Request $request){
-        $courses = Course::where('status',1)
-        ->withCount('reviews')
-        ->withCount('enrollments')
-        ->withSum('reviews','rating')
-        ->with('level');
+    // public function courses(Request $request){
+    //     $courses = Course::where('status',1)
+    //     ->withCount('reviews')
+    //     ->withCount('enrollments')
+    //     ->withSum('reviews','rating')
+    //     ->with('level');
 
-        //Filter by keyword
-        if(!empty($request->keyword)){
-            $courses = $courses->where('title','like','%'.$request->keyword.'%');
-        }
-        //Filter Courses by Category
-        if(!empty($request->category)){
+    //     //Filter by keyword
+    //     if(!empty($request->keyword)){
+    //         $courses = $courses->where('title','like','%'.$request->keyword.'%');
+    //     }
+    //     //Filter Courses by Category
+    //     if(!empty($request->category)){
 
-        $categoryArr = explode(",",$request->category);
-        if(!empty($categoryArr)){
-            $courses = $courses->whereIn('category_id', $categoryArr);
-        }
+    //     $categoryArr = explode(",",$request->category);
+    //     if(!empty($categoryArr)){
+    //         $courses = $courses->whereIn('category_id', $categoryArr);
+    //     }
 
-        }
+    //     }
 
-        //Filter Courses by Level
-        if(!empty($request->level)){
-            $levelArr = explode(",",$request->level);
-            if(!empty($levelArr)){
-                $courses = $courses->whereIn('level_id', $levelArr);
-            }
-        }
+    //     //Filter Courses by Level
+    //     if(!empty($request->level)){
+    //         $levelArr = explode(",",$request->level);
+    //         if(!empty($levelArr)){
+    //             $courses = $courses->whereIn('level_id', $levelArr);
+    //         }
+    //     }
 
-        //Filter Courses by language
-        if(!empty($request->language)){
+    //     //Filter Courses by language
+    //     if(!empty($request->language)){
 
-            $languageArr = explode(",",$request->language);
-            if(!empty($languageArr)){
-                $courses = $courses->whereIn('language_id', $languageArr);
-            }
-        }
+    //         $languageArr = explode(",",$request->language);
+    //         if(!empty($languageArr)){
+    //             $courses = $courses->whereIn('language_id', $languageArr);
+    //         }
+    //     }
 
-     if(!empty($request->sort)){
-        $sortArr = ['asc','desc'];
-        if(in_array($request->sort, $sortArr)){
-            $courses = $courses->orderBy('created_At',$request->sort);
-        }else{
-            $courses = $courses->orderBy('created_At','DESC');
-        };
+    //  if(!empty($request->sort)){
+    //     $sortArr = ['asc','desc'];
+    //     if(in_array($request->sort, $sortArr)){
+    //         $courses = $courses->orderBy('created_At',$request->sort);
+    //     }else{
+    //         $courses = $courses->orderBy('created_At','DESC');
+    //     };
 
-     }
-     $courses = $courses->get();
+    //  }
+    //  $courses = $courses->get();
 
-     $courses->map(function($course){
+    //  $courses->map(function($course){
 
-            $course->rating = $course->reviews_count > 0 ?
-              number_format(($course->reviews_sum_rating/$course->reviews_count ),1): "0.0";
-        });
+    //         $course->rating = $course->reviews_count > 0 ?
+    //           number_format(($course->reviews_sum_rating/$course->reviews_count ),1): "0.0";
+    //     });
      
+    //     return response()->json([
+    //         'status' => 200,
+    //         'data' => $courses
+    //     ],200);
+
+
+    // }
+
+    public function courses(Request $request)
+{
+    try {
+        $courses = Course::where('status', 1)
+            ->withCount('reviews')
+            ->withCount('enrollments')
+            ->withSum('reviews', 'rating')
+            ->with('level');
+
+        // Filter by keyword
+        if (!empty($request->keyword)) {
+            $courses->where('title', 'like', '%' . trim($request->keyword) . '%');
+        }
+
+        // Filter by category
+        if (!empty($request->category)) {
+            $categoryArr = array_filter(array_map('trim', explode(',', $request->category)));
+            if (!empty($categoryArr)) {
+                $courses->whereIn('category_id', $categoryArr);
+            }
+        }
+
+        // Filter by level
+        if (!empty($request->level)) {
+            $levelArr = array_filter(array_map('trim', explode(',', $request->level)));
+            if (!empty($levelArr)) {
+                $courses->whereIn('level_id', $levelArr);
+            }
+        }
+
+        // Filter by language
+        if (!empty($request->language)) {
+            $languageArr = array_filter(array_map('trim', explode(',', $request->language)));
+            if (!empty($languageArr)) {
+                $courses->whereIn('language_id', $languageArr);
+            }
+        }
+
+        // Sort
+        $sort = in_array($request->sort, ['asc', 'desc']) ? $request->sort : 'desc';
+        $courses->orderBy('created_at', $sort);
+
+        $courses = $courses->get();
+
+        $courses->map(function ($course) {
+            $course->rating = $course->reviews_count > 0
+                ? number_format(($course->reviews_sum_rating / $course->reviews_count), 1)
+                : "0.0";
+
+            return $course;
+        });
+
         return response()->json([
             'status' => 200,
             'data' => $courses
-        ],200);
+        ], 200);
 
+    } catch (\Throwable $e) {
+        \Log::error('FETCH COURSES ERROR: ' . $e->getMessage(), [
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'request' => $request->all(),
+        ]);
 
+        return response()->json([
+            'status' => 500,
+            'message' => 'Server Error',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
 
     public function course($id){
         $course = Course::where('id',$id)
@@ -182,6 +254,7 @@ class HomeController extends Controller
                 'data' => $course
             ],200);
     }
+    
     public function enroll(Request $request){
 
         $course = Course::find($request->course_id);
