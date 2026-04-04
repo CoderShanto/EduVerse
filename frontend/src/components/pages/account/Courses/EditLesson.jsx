@@ -1,8 +1,14 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import Layout from "../../../common/Layout";
 import UserSidebar from "../../../common/UserSidebar";
 import { useForm } from "react-hook-form";
-import { apiUrl, token } from "../../../common/Config";
+import { apiUrl, getToken } from "../../../common/Config";
 import { Link, useParams } from "react-router-dom";
 import JoditEditor from "jodit-react";
 import toast from "react-hot-toast";
@@ -32,18 +38,21 @@ const EditLesson = ({ placeholder }) => {
       readonly: false,
       placeholder: placeholder || "Start typing...",
     }),
-    [placeholder]
+    [placeholder],
   );
 
   const fetchChapters = useCallback(async () => {
     try {
-      const res = await fetch(`${apiUrl}/chapters?course_id=${params.courseId}`, {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `${apiUrl}/chapters?course_id=${params.courseId}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${getToken}`,
+          },
         },
-      });
+      );
 
       const result = await res.json();
       if (result.status === 200) {
@@ -63,7 +72,7 @@ const EditLesson = ({ placeholder }) => {
         method: "GET",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken}`,
         },
       });
 
@@ -115,7 +124,7 @@ const EditLesson = ({ placeholder }) => {
         headers: {
           "Content-type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${getToken}`,
         },
         body: JSON.stringify(payload),
       });
@@ -149,7 +158,10 @@ const EditLesson = ({ placeholder }) => {
             <div className="col-md-12 mt-5 mb-3">
               <div className="d-flex justify-content-between align-items-center">
                 <h2 className="h4 mb-0 pb-0">Edit Lesson</h2>
-                <Link className="btn btn-primary" to={`/account/courses/edit/${params.courseId}`}>
+                <Link
+                  className="btn btn-primary"
+                  to={`/account/courses/edit/${params.courseId}`}
+                >
                   Back
                 </Link>
               </div>
@@ -166,23 +178,33 @@ const EditLesson = ({ placeholder }) => {
                   <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="card border-0 shadow-lg">
                       <div className="card-body p-4">
-                        <h4 className="h5 border-bottom pb-3 mb-4">Basic Information</h4>
+                        <h4 className="h5 border-bottom pb-3 mb-4">
+                          Basic Information
+                        </h4>
 
                         <div className="mb-3">
                           <label className="form-label">Title</label>
                           <input
-                            {...register("lesson", { required: "The title field is required." })}
+                            {...register("lesson", {
+                              required: "The title field is required.",
+                            })}
                             type="text"
                             className={`form-control ${errors.lesson ? "is-invalid" : ""}`}
                             placeholder="Lesson Title"
                           />
-                          {errors.lesson && <p className="invalid-feedback">{errors.lesson.message}</p>}
+                          {errors.lesson && (
+                            <p className="invalid-feedback">
+                              {errors.lesson.message}
+                            </p>
+                          )}
                         </div>
 
                         <div className="mb-3">
                           <label className="form-label">Chapter</label>
                           <select
-                            {...register("chapter_id", { required: "Please Select a Chapter" })}
+                            {...register("chapter_id", {
+                              required: "Please Select a Chapter",
+                            })}
                             className={`form-select ${errors.chapter_id ? "is-invalid" : ""}`}
                           >
                             <option value="">Select Chapter</option>
@@ -192,18 +214,28 @@ const EditLesson = ({ placeholder }) => {
                               </option>
                             ))}
                           </select>
-                          {errors.chapter_id && <p className="invalid-feedback">{errors.chapter_id.message}</p>}
+                          {errors.chapter_id && (
+                            <p className="invalid-feedback">
+                              {errors.chapter_id.message}
+                            </p>
+                          )}
                         </div>
 
                         <div className="mb-3">
                           <label className="form-label">Duration (Mins)</label>
                           <input
-                            {...register("duration", { required: "The duration field is required." })}
+                            {...register("duration", {
+                              required: "The duration field is required.",
+                            })}
                             type="number"
                             className={`form-control ${errors.duration ? "is-invalid" : ""}`}
                             placeholder="Duration"
                           />
-                          {errors.duration && <p className="invalid-feedback">{errors.duration.message}</p>}
+                          {errors.duration && (
+                            <p className="invalid-feedback">
+                              {errors.duration.message}
+                            </p>
+                          )}
                         </div>
 
                         <div className="mb-3">
@@ -221,7 +253,9 @@ const EditLesson = ({ placeholder }) => {
                         <div className="mb-3">
                           <label className="form-label">Status</label>
                           <select
-                            {...register("status", { required: "The status field is required." })}
+                            {...register("status", {
+                              required: "The status field is required.",
+                            })}
                             className="form-select"
                           >
                             <option value="1">Active</option>
@@ -237,12 +271,18 @@ const EditLesson = ({ placeholder }) => {
                             type="checkbox"
                             id="freeLesson"
                           />
-                          <label className="form-check-label ms-2" htmlFor="freeLesson">
+                          <label
+                            className="form-check-label ms-2"
+                            htmlFor="freeLesson"
+                          >
                             Free Preview Lesson
                           </label>
                         </div>
 
-                        <button disabled={loading} className="btn btn-primary mt-3">
+                        <button
+                          disabled={loading}
+                          className="btn btn-primary mt-3"
+                        >
                           {loading ? "Please wait..." : "Update"}
                         </button>
                       </div>
