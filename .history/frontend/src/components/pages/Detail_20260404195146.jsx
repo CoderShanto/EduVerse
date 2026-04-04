@@ -3,7 +3,7 @@ import Layout from "../common/Layout";
 import { Rating } from "react-simple-star-rating";
 import { Accordion } from "react-bootstrap";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { apiUrl, convertMinutesToHours, token } from "../common/Config";
+import { apiUrl, convertMinutesToHours, getToken } from "../common/Config";
 import { LuMonitorPlay } from "react-icons/lu";
 import Loading from "../common/Loading";
 import FreePreview from "../common/FreePreview";
@@ -184,55 +184,72 @@ const css = `
   }
 `;
 
+// ✅ FIX: strip /api or /api/ from the end — matches both
 const backendBase = apiUrl.replace(/\/api\/?$/, "");
 
+// ✅ FIX: extract the raw image filename from course object
+// DB stores bare filename in `image` column; image_url and image_small_url are NULL
+const getRawCourseImage = (course) =>
+  course?.image_small_url ||
+  course?.image_url ||
+  course?.course_small_image ||
+  course?.thumbnail ||
+  course?.image || // ← this is what your DB actually stores
+  "";
+
+// ✅ FIX: build multiple fallback URL candidates for a bare filename
 const buildImgCandidates = (raw, title) => {
   const placeholder = `https://placehold.co/900x500?text=${encodeURIComponent(title || "Course")}`;
 
-  if (!raw) return { candidates: [placeholder], placeholder };
+  if (!raw) return [placeholder];
 
   const s = String(raw).trim();
 
-  if (/^https?:\/\//i.test(s)) return { candidates: [s, placeholder], placeholder };
+  // Already a full URL
+  if (/^https?:\/\//i.test(s)) return [s, placeholder];
 
+  // Already a rooted path like /uploads/... or /storage/...
   if (s.startsWith("/uploads") || s.startsWith("/storage")) {
-    return { candidates: [`${backendBase}${s}`, placeholder], placeholder };
+    return [`${backendBase}${s}`, placeholder];
   }
 
+  // Relative path like uploads/course/...
   if (s.startsWith("uploads/") || s.startsWith("storage/")) {
-    return { candidates: [`${backendBase}/${s}`, placeholder], placeholder };
+    return [`${backendBase}/${s}`, placeholder];
   }
 
-  const candidates = [
+  // ✅ Bare filename (e.g. "1759309572-1.jpg") — try all common upload paths
+  return [
     `${backendBase}/uploads/course/small/${s}`,
     `${backendBase}/uploads/course/${s}`,
     `${backendBase}/uploads/courses/small/${s}`,
     `${backendBase}/uploads/courses/${s}`,
+    `${backendBase}/storage/uploads/course/small/${s}`,
     `${backendBase}/storage/${s}`,
     placeholder,
   ];
-
-  return { candidates, placeholder };
 };
 
+// ✅ SmartImg: tries each candidate URL in order on error
 const SmartImg = ({ raw, title, className = "", alt = "", style = {} }) => {
-  const { candidates } = useMemo(() => buildImgCandidates(raw, title), [raw, title]);
+  const candidates = useMemo(
+    () => buildImgCandidates(raw, title),
+    [raw, title],
+  );
   const [idx, setIdx] = useState(0);
 
-  useEffect(() => setIdx(0), [raw, title]);
+  // Reset when course changes
+  useEffect(() => setIdx(0), [raw]);
 
   return (
     <img
-      src={candidates[idx]}
-      alt={alt || title || "Image"}
+      src={candidates[idx] || candidates[0]}
+      alt={alt || title || "Course image"}
       className={className}
       style={style}
-      onError={() => {
-        setIdx((prev) => {
-          const next = prev + 1;
-          return next < candidates.length ? next : prev;
-        });
-      }}
+      onError={() =>
+        setIdx((prev) => (prev + 1 < candidates.length ? prev + 1 : prev))
+      }
     />
   );
 };
@@ -255,7 +272,10 @@ export const Detail = () => {
     setLoading(true);
     fetch(`${apiUrl}/fetch-course/${params.id}`, {
       method: "GET",
-      headers: { "Content-type": "application/json", Accept: "application/json" },
+      headers: {
+        "Content-type": "application/json",
+        Accept: "application/json",
+      },
     })
       .then((res) => res.json())
       .then((result) => {
@@ -268,7 +288,11 @@ export const Detail = () => {
   const enrollCourse = async () => {
     await fetch(`${apiUrl}/enroll-course`, {
       method: "POST",
-      headers: { "Content-type": "application/json", Accept: "application/json", Authorization: `Bearer ${token}` },
+      headers: {
+        "Content-type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${getToken}`,
+      },
       body: JSON.stringify({ course_id: course.id }),
     })
       .then(async (res) => ({ status: res.status, data: await res.json() }))
@@ -286,12 +310,23 @@ export const Detail = () => {
   }, [params.id]);
 
   const discountPct =
-    course?.cross_price && course?.price ? Math.round((1 - course.price / course.cross_price) * 100) : null;
+    course?.cross_price && course?.price
+      ? Math.round((1 - course.price / course.cross_price) * 100)
+      : null;
+
+  // ✅ Extract raw image once course loads
+  const rawCourseImg = course ? getRawCourseImage(course) : "";
 
   return (
     <Layout>
       <style>{css}</style>
-      {freeLesson && <FreePreview show={show} handleClose={handleClose} freeLesson={freeLesson} />}
+      {freeLesson && (
+        <FreePreview
+          show={show}
+          handleClose={handleClose}
+          freeLesson={freeLesson}
+        />
+      )}
 
       <div className="dt-blob-wrap">
         <div className="dt-blob dt-blob-1" />
@@ -320,14 +355,24 @@ export const Detail = () => {
                   <span>›</span>
                   <a href="/courses">Courses</a>
                   <span>›</span>
-                  <span style={{ color: "rgba(255,255,255,0.75)" }}>{course.title}</span>
+                  <span style={{ color: "rgba(255,255,255,0.75)" }}>
+                    {course.title}
+                  </span>
                 </div>
-                <div className="dt-cat-pill">📂 {course?.category?.name || "Course"}</div>
+                <div className="dt-cat-pill">
+                  📂 {course?.category?.name || "Course"}
+                </div>
                 <h1 className="dt-hero-title">{course.title}</h1>
                 <div className="dt-hero-meta">
                   <div className="dt-hero-rating">
-                    <span className="dt-rating-num">{course.rating || "4.0"}</span>
-                    <Rating readonly initialValue={parseFloat(course.rating || 4)} size={18} />
+                    <span className="dt-rating-num">
+                      {course.rating || "4.0"}
+                    </span>
+                    <Rating
+                      readonly
+                      initialValue={parseFloat(course.rating || 4)}
+                      size={18}
+                    />
                   </div>
                   <span className="dt-meta-chip">
                     👥 <b>{course.enrollments_count || 0}</b> students
@@ -341,19 +386,27 @@ export const Detail = () => {
                 </div>
                 <div className="dt-stats-row">
                   <div className="dt-stat">
-                    <span className="dt-stat-val">{course.chapters_count || 0}</span>
+                    <span className="dt-stat-val">
+                      {course.chapters_count || 0}
+                    </span>
                     <span className="dt-stat-label">Chapters</span>
                   </div>
                   <div className="dt-stat">
-                    <span className="dt-stat-val">{course.total_lessons || 0}</span>
+                    <span className="dt-stat-val">
+                      {course.total_lessons || 0}
+                    </span>
                     <span className="dt-stat-label">Lessons</span>
                   </div>
                   <div className="dt-stat">
-                    <span className="dt-stat-val">{convertMinutesToHours(course.total_duration || 0)}</span>
+                    <span className="dt-stat-val">
+                      {convertMinutesToHours(course.total_duration || 0)}
+                    </span>
                     <span className="dt-stat-label">Duration</span>
                   </div>
                   <div className="dt-stat">
-                    <span className="dt-stat-val">{course.reviews?.length || 0}</span>
+                    <span className="dt-stat-val">
+                      {course.reviews?.length || 0}
+                    </span>
                     <span className="dt-stat-label">Reviews</span>
                   </div>
                 </div>
@@ -365,7 +418,10 @@ export const Detail = () => {
               <div className="col-lg-8">
                 <div className="dt-card" style={{ animationDelay: "0.1s" }}>
                   <div className="dt-section-title">
-                    <span className="dt-dot" style={{ background: "var(--blue)" }} />
+                    <span
+                      className="dt-dot"
+                      style={{ background: "var(--blue)" }}
+                    />
                     Overview
                   </div>
                   <div className="dt-desc">{course.description}</div>
@@ -374,12 +430,21 @@ export const Detail = () => {
                 {course.outcomes?.length > 0 && (
                   <div className="dt-card" style={{ animationDelay: "0.15s" }}>
                     <div className="dt-section-title">
-                      <span className="dt-dot" style={{ background: "var(--green)" }} />
+                      <span
+                        className="dt-dot"
+                        style={{ background: "var(--green)" }}
+                      />
                       What You Will Learn
                     </div>
                     <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                       {course.outcomes.map((o, i) => (
-                        <li key={i} style={{ padding: "0.6rem 0.2rem", color: "var(--text2)" }}>
+                        <li
+                          key={i}
+                          style={{
+                            padding: "0.6rem 0.2rem",
+                            color: "var(--text2)",
+                          }}
+                        >
                           ✅ {o.text}
                         </li>
                       ))}
@@ -390,12 +455,21 @@ export const Detail = () => {
                 {course.requirements?.length > 0 && (
                   <div className="dt-card" style={{ animationDelay: "0.2s" }}>
                     <div className="dt-section-title">
-                      <span className="dt-dot" style={{ background: "var(--purple)" }} />
+                      <span
+                        className="dt-dot"
+                        style={{ background: "var(--purple)" }}
+                      />
                       Requirements
                     </div>
                     <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                       {course.requirements.map((r, i) => (
-                        <li key={i} style={{ padding: "0.6rem 0.2rem", color: "var(--text2)" }}>
+                        <li
+                          key={i}
+                          style={{
+                            padding: "0.6rem 0.2rem",
+                            color: "var(--text2)",
+                          }}
+                        >
                           ➜ {r.text}
                         </li>
                       ))}
@@ -406,13 +480,19 @@ export const Detail = () => {
                 {course.chapters?.length > 0 && (
                   <div className="dt-card" style={{ animationDelay: "0.25s" }}>
                     <div className="dt-section-title">
-                      <span className="dt-dot" style={{ background: "var(--yellow)" }} />
+                      <span
+                        className="dt-dot"
+                        style={{ background: "var(--yellow)" }}
+                      />
                       Course Curriculum
                     </div>
 
                     <Accordion defaultActiveKey="0" className="dt-accordion">
                       {course.chapters.map((chapter, index) => (
-                        <Accordion.Item eventKey={String(index)} key={chapter.id || index}>
+                        <Accordion.Item
+                          eventKey={String(index)}
+                          key={chapter.id || index}
+                        >
                           <Accordion.Header>
                             <span
                               style={{
@@ -425,8 +505,18 @@ export const Detail = () => {
                             >
                               {chapter.title}
                             </span>
-                            <span style={{ fontSize: "0.7rem", color: "var(--text3)", fontWeight: 500, marginLeft: "auto" }}>
-                              {chapter.lessons_count} lessons · {convertMinutesToHours(chapter.lessons_sum_duration)}
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                                color: "var(--text3)",
+                                fontWeight: 500,
+                                marginLeft: "auto",
+                              }}
+                            >
+                              {chapter.lessons_count} lessons ·{" "}
+                              {convertMinutesToHours(
+                                chapter.lessons_sum_duration,
+                              )}
                             </span>
                           </Accordion.Header>
 
@@ -434,18 +524,42 @@ export const Detail = () => {
                             {chapter.lessons?.map((lesson) => (
                               <div key={lesson.id} className="dt-lesson-item">
                                 <div className="dt-lesson-left">
-                                  <LuMonitorPlay className="dt-lesson-icon" size={15} />
-                                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  <LuMonitorPlay
+                                    className="dt-lesson-icon"
+                                    size={15}
+                                  />
+                                  <span
+                                    style={{
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
                                     {lesson.title}
                                   </span>
                                 </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.5rem",
+                                  }}
+                                >
                                   {lesson.is_free_preview === "yes" && (
-                                    <button className="dt-preview-btn" onClick={() => handleShow(lesson)}>
+                                    <button
+                                      className="dt-preview-btn"
+                                      onClick={() => handleShow(lesson)}
+                                    >
                                       ▶ Preview
                                     </button>
                                   )}
-                                  <span style={{ fontSize: "0.7rem", color: "var(--text3)", fontWeight: 600 }}>
+                                  <span
+                                    style={{
+                                      fontSize: "0.7rem",
+                                      color: "var(--text3)",
+                                      fontWeight: 600,
+                                    }}
+                                  >
                                     {convertMinutesToHours(lesson.duration)}
                                   </span>
                                 </div>
@@ -463,9 +577,16 @@ export const Detail = () => {
               <div className="col-lg-4">
                 <div className="dt-sidebar">
                   <div className="dt-enroll-card">
-                    {/* ✅ Thumbnail FIXED HERE */}
+                    {/* ✅ FIXED: SmartImg now uses getRawCourseImage which correctly
+                        reads course.image (bare filename from DB) and tries all
+                        common upload paths as fallbacks */}
                     <div className="dt-thumb-wrap">
-                      <SmartImg raw={course.course_small_image || course.image || course.thumbnail || ""} title={course.title} alt={course.title} className="dt-course-thumb" />
+                      <SmartImg
+                        raw={rawCourseImg}
+                        title={course.title}
+                        alt={course.title}
+                        className="dt-course-thumb"
+                      />
                       <div className="dt-thumb-overlay">
                         {discountPct && (
                           <span
@@ -487,12 +608,27 @@ export const Detail = () => {
                     <div className="dt-enroll-body">
                       <div className="dt-price-row">
                         <span className="dt-price">${course.price}</span>
-                        {course.cross_price && <span className="dt-cross-price">${course.cross_price}</span>}
-                        {discountPct && <span className="dt-discount-chip">{discountPct}% off</span>}
+                        {course.cross_price && (
+                          <span className="dt-cross-price">
+                            ${course.cross_price}
+                          </span>
+                        )}
+                        {discountPct && (
+                          <span className="dt-discount-chip">
+                            {discountPct}% off
+                          </span>
+                        )}
                       </div>
 
                       {course.cross_price && (
-                        <p style={{ fontSize: "0.72rem", color: "var(--orange)", fontWeight: 700, margin: "0.2rem 0 0" }}>
+                        <p
+                          style={{
+                            fontSize: "0.72rem",
+                            color: "var(--orange)",
+                            fontWeight: 700,
+                            margin: "0.2rem 0 0",
+                          }}
+                        >
                           ⚡ Limited time offer
                         </p>
                       )}
@@ -503,16 +639,41 @@ export const Detail = () => {
                     </div>
 
                     <div className="dt-includes">
-                      <div className="dt-includes-title">This course includes</div>
+                      <div className="dt-includes-title">
+                        This course includes
+                      </div>
                       {[
-                        { icon: "♾️", bg: "#eef0ff", label: "Full lifetime access" },
-                        { icon: "📱", bg: "#e6faf3", label: "Access on mobile and TV" },
-                        { icon: "🏆", bg: "#fff8e6", label: "Certificate of completion" },
-                        { icon: "🎬", bg: "#fff2ee", label: `${course.total_lessons || 0} video lessons` },
-                        { icon: "⏱", bg: "#f5f0ff", label: `${convertMinutesToHours(course.total_duration || 0)} content` },
+                        {
+                          icon: "♾️",
+                          bg: "#eef0ff",
+                          label: "Full lifetime access",
+                        },
+                        {
+                          icon: "📱",
+                          bg: "#e6faf3",
+                          label: "Access on mobile and TV",
+                        },
+                        {
+                          icon: "🏆",
+                          bg: "#fff8e6",
+                          label: "Certificate of completion",
+                        },
+                        {
+                          icon: "🎬",
+                          bg: "#fff2ee",
+                          label: `${course.total_lessons || 0} video lessons`,
+                        },
+                        {
+                          icon: "⏱",
+                          bg: "#f5f0ff",
+                          label: `${convertMinutesToHours(course.total_duration || 0)} content`,
+                        },
                       ].map((item, i) => (
                         <div key={i} className="dt-include-item">
-                          <span className="dt-include-icon" style={{ background: item.bg }}>
+                          <span
+                            className="dt-include-icon"
+                            style={{ background: item.bg }}
+                          >
                             {item.icon}
                           </span>
                           {item.label}
@@ -520,7 +681,9 @@ export const Detail = () => {
                       ))}
                     </div>
 
-                    <div className="dt-guarantee">🔒 30-Day Money-Back Guarantee</div>
+                    <div className="dt-guarantee">
+                      🔒 30-Day Money-Back Guarantee
+                    </div>
                   </div>
                 </div>
               </div>
