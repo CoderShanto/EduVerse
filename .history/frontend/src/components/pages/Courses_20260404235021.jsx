@@ -1,10 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react'
-import Course from '../common/Course'
-import Layout from '../common/Layout'
-import { apiUrl } from '../common/Config'
-import { Link, useSearchParams } from 'react-router-dom'
-import Loading from '../common/Loading'
-import NotFound from '../common/NotFound'
+import React, { useEffect, useMemo, useState } from "react";
+import Course from "../common/Course";
+import Layout from "../common/Layout";
+import { apiUrl } from "../common/Config";
+import { useSearchParams } from "react-router-dom";
+import NotFound from "../common/NotFound";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -43,7 +42,6 @@ const css = `
     position: relative;
   }
 
-  /* Blobs */
   .crs-blob-wrap { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
   .crs-blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.22; }
   .crs-blob-1 { width: 600px; height: 600px; background: radial-gradient(circle,#c7d0ff,#a5b4fc); top: -200px; right: -150px; animation: blob-float 12s ease-in-out infinite alternate; }
@@ -53,7 +51,6 @@ const css = `
 
   .crs-inner { position: relative; z-index: 1; padding-top: 1.5rem; }
 
-  /* Hero banner */
   .crs-hero {
     background: linear-gradient(135deg,#4f6ef7 0%,#7c5cbf 55%,#a855f7 100%);
     border-radius: 28px; padding: 2.2rem 2.6rem;
@@ -84,12 +81,10 @@ const css = `
   .crs-hero-title em { font-style: italic; opacity: 0.85; }
   .crs-hero-sub { font-size: 0.85rem; color: rgba(255,255,255,0.65); margin: 0; }
 
-  /* Breadcrumb */
   .crs-bc { font-size: 0.73rem; color: rgba(255,255,255,0.55); margin-top: 1rem; display: flex; align-items: center; gap: 0.4rem; }
   .crs-bc a { color: rgba(255,255,255,0.7); text-decoration: none; font-weight: 600; }
   .crs-bc a:hover { color: #fff; }
 
-  /* Search bar below hero */
   .crs-search-bar {
     background: var(--white); border-radius: var(--radius);
     border: 1.5px solid var(--border); box-shadow: var(--shadow);
@@ -121,12 +116,10 @@ const css = `
   }
   .crs-result-chip b { font-family: var(--font-serif); font-size: 0.9rem; }
 
-  /* Layout */
   .crs-layout { display: flex; gap: 1.5rem; align-items: flex-start; }
   .crs-sidebar-col { width: 280px; flex-shrink: 0; }
   .crs-main-col { flex: 1; min-width: 0; }
 
-  /* Sidebar */
   .crs-sidebar {
     background: var(--white); border-radius: var(--radius);
     border: 1.5px solid var(--border); box-shadow: var(--shadow);
@@ -164,7 +157,6 @@ const css = `
     font-family: var(--font); text-transform: none; letter-spacing: 0;
   }
 
-  /* Checkbox list */
   .crs-check-list { display: flex; flex-direction: column; gap: 4px; list-style: none; padding: 0; margin: 0; }
   .crs-check-item label {
     display: flex; align-items: center; gap: 8px; cursor: pointer;
@@ -177,36 +169,6 @@ const css = `
     accent-color: var(--blue); cursor: pointer;
   }
 
-  /* Price range slider */
-  .crs-price-range { padding: 0.2rem 0; }
-  .crs-price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
-  .crs-price-val {
-    font-family: var(--font-serif); font-size: 0.9rem; font-weight: 700; color: var(--blue);
-    background: var(--blue-light); border: 1.5px solid var(--blue-mid);
-    border-radius: 8px; padding: 3px 10px;
-  }
-  .crs-range-track { position: relative; height: 5px; background: var(--border); border-radius: 99px; margin: 0.4rem 0; }
-  .crs-range-fill {
-    position: absolute; height: 100%; background: linear-gradient(90deg,var(--blue),var(--purple));
-    border-radius: 99px; pointer-events: none;
-  }
-  .crs-range-input {
-    position: absolute; top: 50%; transform: translateY(-50%);
-    width: 100%; height: 5px; opacity: 0; cursor: pointer;
-    -webkit-appearance: none; appearance: none; margin: 0;
-  }
-  .crs-range-thumb {
-    position: absolute; top: 50%; transform: translateY(-50%);
-    width: 18px; height: 18px; border-radius: 50%;
-    background: var(--white); border: 2.5px solid var(--blue);
-    box-shadow: 0 2px 8px rgba(79,110,247,0.3);
-    pointer-events: none;
-  }
-  input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--blue); cursor: pointer; }
-  input[type='range'] { -webkit-appearance: none; appearance: none; background: transparent; outline: none; }
-  input[type='range']::-webkit-slider-runnable-track { height: 5px; }
-
-  /* Active filter chips */
   .crs-active-filters { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 0.8rem; }
   .crs-filter-chip {
     display: inline-flex; align-items: center; gap: 5px;
@@ -217,20 +179,6 @@ const css = `
   .crs-filter-chip:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
   .crs-filter-chip .x { font-size: 0.7rem; opacity: 0.7; }
 
-  /* Main area toolbar */
-  .crs-toolbar {
-    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    margin-bottom: 1.3rem; flex-wrap: wrap;
-  }
-  .crs-toolbar-left { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-  .crs-tab {
-    font-size: 0.75rem; font-weight: 700; padding: 6px 14px; border-radius: 10px;
-    border: 1.5px solid var(--border); background: var(--white); color: var(--text2);
-    cursor: pointer; font-family: var(--font); transition: all 0.18s;
-  }
-  .crs-tab.active, .crs-tab:hover { background: var(--blue); color: #fff; border-color: var(--blue); }
-
-  /* Course grid */
   .crs-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -238,7 +186,6 @@ const css = `
   }
   .crs-card-wrap { animation: crs-up 0.4s both; }
 
-  /* Override Course card */
   .crs-grid .card {
     border-radius: 20px !important;
     border: 1.5px solid var(--border) !important;
@@ -261,7 +208,6 @@ const css = `
   }
   .crs-grid .btn-primary:hover { opacity: 0.88 !important; transform: translateY(-1px) !important; }
 
-  /* Skeleton */
   .crs-skeleton {
     border-radius: 20px; height: 290px;
     background: linear-gradient(90deg,#e8ecff 0%,#f0f4ff 50%,#e8ecff 100%);
@@ -271,7 +217,6 @@ const css = `
   @keyframes shimmer { 0%{background-position:-700px 0;} 100%{background-position:700px 0;} }
   @keyframes crs-up { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
 
-  /* Mobile sidebar drawer */
   .crs-mob-filter-btn {
     display: none;
     font-size: 0.8rem; font-weight: 700; padding: 8px 18px; border-radius: 12px;
@@ -314,172 +259,349 @@ const css = `
     .crs-sort-select { width: 100%; }
   }
   @media (max-width: 380px) { .crs-grid { grid-template-columns: 1fr; } }
-`
+`;
 
 const Courses = () => {
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [categories, setCategories] = useState([])
-  const [keyword, setKeyword] = useState('')
-  const [sort, setSort] = useState('desc')
-  const [levels, setLevels] = useState([])
-  const [languages, setLanguages] = useState([])
-  const [courses, setCourses] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [mobOpen, setMobOpen] = useState(false)
-  const [priceMax, setPriceMax] = useState(200)
-  const [priceFilter, setPriceFilter] = useState(200)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [categories, setCategories] = useState([]);
+  const [keyword, setKeyword] = useState(searchParams.get("keyword") || "");
+  const [sort, setSort] = useState(searchParams.get("sort") || "desc");
+  const [levels, setLevels] = useState([]);
+  const [languages, setLanguages] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [mobOpen, setMobOpen] = useState(false);
 
   const [categoryChecked, setCategoryChecked] = useState(() => {
-    const c = searchParams.get('category'); return c ? c.split(',') : []
-  })
-  const [levelChecked, setLevelChecked] = useState(() => {
-    const l = searchParams.get('level'); return l ? l.split(',') : []
-  })
-  const [languageChecked, setLanguageChecked] = useState(() => {
-    const l = searchParams.get('language'); return l ? l.split(',') : []
-  })
+    const c = searchParams.get("category");
+    return c ? c.split(",") : [];
+  });
 
-  const activeCount = categoryChecked.length + levelChecked.length + languageChecked.length
+  const [levelChecked, setLevelChecked] = useState(() => {
+    const l = searchParams.get("level");
+    return l ? l.split(",") : [];
+  });
+
+  const [languageChecked, setLanguageChecked] = useState(() => {
+    const l = searchParams.get("language");
+    return l ? l.split(",") : [];
+  });
+
+  const getNumericPrice = (course) => {
+    const raw =
+      course?.price ??
+      course?.selling_price ??
+      course?.discounted_price ??
+      null;
+    const value = parseFloat(raw);
+    return Number.isFinite(value) ? value : null;
+  };
+
+  const computedMaxPrice = useMemo(() => {
+    const prices = courses.map(getNumericPrice).filter((v) => v !== null);
+    if (prices.length === 0) return 10000;
+    return Math.max(...prices, 10000);
+  }, [courses]);
+
+  const [priceFilter, setPriceFilter] = useState(null);
+
+  useEffect(() => {
+    if (priceFilter === null) return;
+    if (priceFilter > computedMaxPrice) {
+      setPriceFilter(computedMaxPrice);
+    }
+  }, [computedMaxPrice, priceFilter]);
+
+  const activeCount =
+    categoryChecked.length +
+    levelChecked.length +
+    languageChecked.length +
+    (priceFilter !== null ? 1 : 0);
 
   const handleCategory = (e) => {
-    const { checked, value } = e.target
-    setCategoryChecked(p => checked ? [...p, value] : p.filter(id => id != value))
-  }
+    const { checked, value } = e.target;
+    setCategoryChecked((p) =>
+      checked ? [...p, value] : p.filter((id) => id != value),
+    );
+  };
+
   const handleLevel = (e) => {
-    const { checked, value } = e.target
-    setLevelChecked(p => checked ? [...p, value] : p.filter(id => id != value))
-  }
+    const { checked, value } = e.target;
+    setLevelChecked((p) =>
+      checked ? [...p, value] : p.filter((id) => id != value),
+    );
+  };
+
   const handleLanguage = (e) => {
-    const { checked, value } = e.target
-    setLanguageChecked(p => checked ? [...p, value] : p.filter(id => id != value))
-  }
+    const { checked, value } = e.target;
+    setLanguageChecked((p) =>
+      checked ? [...p, value] : p.filter((id) => id != value),
+    );
+  };
 
-  const fetchCourses = () => {
-    setLoading(true)
-    const search = []
-    if (categoryChecked.length > 0) search.push(['category', categoryChecked])
-    if (levelChecked.length > 0) search.push(['level', levelChecked])
-    if (languageChecked.length > 0) search.push(['language', languageChecked])
-    if (keyword.length > 0) search.push(['keyword', keyword])
-    search.push(['sort', sort])
-    const params = search.length > 0 ? new URLSearchParams(search) : new URLSearchParams()
-    if (search.length > 0) setSearchParams(params); else setSearchParams([])
-    fetch(`৳{apiUrl}/fetch-courses?${params}`, {
-      method: 'GET', headers: { 'Content-type': 'application/json', Accept: 'application/json' },
-    })
-      .then(res => res.json())
-      .then(result => {
-        setLoading(false)
-        if (result.status == 200) setCourses(result.data)
-        else console.log('Something went wrong')
-      })
-  }
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
 
-  const fetchCategories = () => {
-    fetch(`${apiUrl}/fetch-categories`, { method: 'GET', headers: { 'Content-type': 'application/json', Accept: 'application/json' } })
-      .then(r => r.json()).then(result => { if (result.status == 200) setCategories(result.data) })
-  }
-  const fetchLevels = () => {
-    fetch(`${apiUrl}/fetch-levels`, { method: 'GET', headers: { 'Content-type': 'application/json', Accept: 'application/json' } })
-      .then(r => r.json()).then(result => { if (result.status == 200) setLevels(result.data) })
-  }
-  const fetchLanguages = () => {
-    fetch(`${apiUrl}/fetch-languages`, { method: 'GET', headers: { 'Content-type': 'application/json', Accept: 'application/json' } })
-      .then(r => r.json()).then(result => { if (result.status == 200) setLanguages(result.data) })
-  }
+      const params = new URLSearchParams();
+
+      if (categoryChecked.length > 0)
+        params.set("category", categoryChecked.join(","));
+      if (levelChecked.length > 0) params.set("level", levelChecked.join(","));
+      if (languageChecked.length > 0)
+        params.set("language", languageChecked.join(","));
+      if (keyword.trim().length > 0) params.set("keyword", keyword.trim());
+      params.set("sort", sort);
+
+      setSearchParams(params);
+
+      const res = await fetch(`${apiUrl}/fetch-courses?${params.toString()}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      });
+
+      const result = await res.json();
+      console.log("FETCH COURSES RESULT =>", result);
+
+      if (result?.status === 200) {
+        setCourses(Array.isArray(result.data) ? result.data : []);
+      } else {
+        setCourses([]);
+        console.log("Something went wrong");
+      }
+    } catch (error) {
+      console.error("FETCH COURSES ERROR =>", error);
+      setCourses([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    const res = await fetch(`${apiUrl}/fetch-categories`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+    const result = await res.json();
+    if (result?.status === 200) setCategories(result.data || []);
+  };
+
+  const fetchLevels = async () => {
+    const res = await fetch(`${apiUrl}/fetch-levels`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+    const result = await res.json();
+    if (result?.status === 200) setLevels(result.data || []);
+  };
+
+  const fetchLanguages = async () => {
+    const res = await fetch(`${apiUrl}/fetch-languages`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
+    const result = await res.json();
+    if (result?.status === 200) setLanguages(result.data || []);
+  };
 
   const clearFilters = () => {
-    setLevelChecked([]); setCategoryChecked([]); setLanguageChecked([])
-    setKeyword(''); setPriceFilter(200)
-    document.querySelectorAll('.crs-check-item input[type=checkbox]').forEach(el => el.checked = false)
-  }
+    setLevelChecked([]);
+    setCategoryChecked([]);
+    setLanguageChecked([]);
+    setKeyword("");
+    setSort("desc");
+    setPriceFilter(null);
+    document
+      .querySelectorAll(".crs-check-item input[type=checkbox]")
+      .forEach((el) => (el.checked = false));
+  };
 
-  useEffect(() => { fetchCategories(); fetchLevels(); fetchLanguages() }, [])
-  useEffect(() => { fetchCourses() }, [categoryChecked, levelChecked, languageChecked, keyword, sort])
+  useEffect(() => {
+    fetchCategories();
+    fetchLevels();
+    fetchLanguages();
+  }, []);
 
-  // filtered by price client-side — 200 = "Any", null/missing price always shown
-  const displayedCourses = courses.filter(c => {
-    if (priceFilter >= 200) return true
-    const raw = c.price ?? c.selling_price ?? c.discounted_price ?? null
-    if (raw === null || raw === undefined || raw === '' || isNaN(parseFloat(raw))) return true
-    return parseFloat(raw) <= priceFilter
-  })
+  useEffect(() => {
+    fetchCourses();
+  }, [categoryChecked, levelChecked, languageChecked, keyword, sort]);
+
+  const displayedCourses = courses.filter((c) => {
+    if (priceFilter === null) return true;
+    const price = getNumericPrice(c);
+    if (price === null) return true;
+    return price <= priceFilter;
+  });
 
   const SidebarContent = () => (
     <>
-      <div className='crs-sidebar-header'>
-        <div className='crs-sidebar-title'>
-          <span className='crs-sidebar-dot' />
+      <div className="crs-sidebar-header">
+        <div className="crs-sidebar-title">
+          <span className="crs-sidebar-dot" />
           Filters
-          {activeCount > 0 && <span style={{ marginLeft: 4, fontFamily: 'var(--font)', fontSize: '0.65rem', background: 'var(--blue)', color: '#fff', borderRadius: '99px', padding: '2px 8px' }}>{activeCount}</span>}
-          <button className='crs-clear-btn' onClick={clearFilters}>Clear All</button>
+          {activeCount > 0 && (
+            <span
+              style={{
+                marginLeft: 4,
+                fontFamily: "var(--font)",
+                fontSize: "0.65rem",
+                background: "var(--blue)",
+                color: "#fff",
+                borderRadius: "99px",
+                padding: "2px 8px",
+              }}
+            >
+              {activeCount}
+            </span>
+          )}
+          <button className="crs-clear-btn" onClick={clearFilters}>
+            Clear All
+          </button>
         </div>
       </div>
-      <div className='crs-sidebar-body'>
 
-        {/* Active filter chips */}
+      <div className="crs-sidebar-body">
         {activeCount > 0 && (
-          <div className='crs-active-filters' style={{ marginBottom: '1rem' }}>
-            {categoryChecked.map(id => {
-              const cat = categories.find(c => String(c.id) === String(id))
+          <div className="crs-active-filters" style={{ marginBottom: "1rem" }}>
+            {categoryChecked.map((id) => {
+              const cat = categories.find((c) => String(c.id) === String(id));
               return cat ? (
-                <span key={id} className='crs-filter-chip' onClick={() => setCategoryChecked(p => p.filter(x => x != id))}>
-                  {cat.name} <span className='x'>✕</span>
+                <span
+                  key={id}
+                  className="crs-filter-chip"
+                  onClick={() =>
+                    setCategoryChecked((p) => p.filter((x) => x != id))
+                  }
+                >
+                  {cat.name} <span className="x">✕</span>
                 </span>
-              ) : null
+              ) : null;
             })}
-            {levelChecked.map(id => {
-              const lv = levels.find(l => String(l.id) === String(id))
+
+            {levelChecked.map((id) => {
+              const lv = levels.find((l) => String(l.id) === String(id));
               return lv ? (
-                <span key={id} className='crs-filter-chip' onClick={() => setLevelChecked(p => p.filter(x => x != id))}>
-                  {lv.name} <span className='x'>✕</span>
+                <span
+                  key={id}
+                  className="crs-filter-chip"
+                  onClick={() =>
+                    setLevelChecked((p) => p.filter((x) => x != id))
+                  }
+                >
+                  {lv.name} <span className="x">✕</span>
                 </span>
-              ) : null
+              ) : null;
             })}
-            {languageChecked.map(id => {
-              const ln = languages.find(l => String(l.id) === String(id))
+
+            {languageChecked.map((id) => {
+              const ln = languages.find((l) => String(l.id) === String(id));
               return ln ? (
-                <span key={id} className='crs-filter-chip' onClick={() => setLanguageChecked(p => p.filter(x => x != id))}>
-                  {ln.name} <span className='x'>✕</span>
+                <span
+                  key={id}
+                  className="crs-filter-chip"
+                  onClick={() =>
+                    setLanguageChecked((p) => p.filter((x) => x != id))
+                  }
+                >
+                  {ln.name} <span className="x">✕</span>
                 </span>
-              ) : null
+              ) : null;
             })}
+
+            {priceFilter !== null && (
+              <span
+                className="crs-filter-chip"
+                onClick={() => setPriceFilter(null)}
+              >
+                Max: {priceFilter} <span className="x">✕</span>
+              </span>
+            )}
           </div>
         )}
 
-        {/* Price range */}
-        <div className='crs-filter-section'>
-          <div className='crs-filter-label'>Price Range</div>
-          <div className='crs-price-range'>
-            <div className='crs-price-row'>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text3)', fontWeight: 600 }}>$0</span>
-              <span className='crs-price-val'>${priceFilter === 200 ? 'Any' : priceFilter}</span>
+        <div className="crs-filter-section">
+          <div className="crs-filter-label">Price Range</div>
+          <div className="crs-price-range">
+            <div className="crs-price-row">
+              <span
+                style={{
+                  fontSize: "0.72rem",
+                  color: "var(--text3)",
+                  fontWeight: 600,
+                }}
+              >
+                0
+              </span>
+              <span className="crs-price-val">
+                {priceFilter === null ? "Any" : priceFilter}
+              </span>
             </div>
             <input
-              type='range' min='0' max='200' step='5'
-              value={priceFilter}
-              onChange={e => setPriceFilter(Number(e.target.value))}
-              style={{ width: '100%', accentColor: 'var(--blue)', cursor: 'pointer' }}
+              type="range"
+              min="0"
+              max={computedMaxPrice}
+              step="5"
+              value={priceFilter ?? computedMaxPrice}
+              onChange={(e) => setPriceFilter(Number(e.target.value))}
+              style={{
+                width: "100%",
+                accentColor: "var(--blue)",
+                cursor: "pointer",
+              }}
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.67rem', color: 'var(--text3)', marginTop: '0.3rem' }}>
-              <span>Free</span><span>$50</span><span>$100</span><span>$200+</span>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: "0.67rem",
+                color: "var(--text3)",
+                marginTop: "0.3rem",
+              }}
+            >
+              <span>Free</span>
+              <span>{Math.round(computedMaxPrice / 4)}</span>
+              <span>{Math.round(computedMaxPrice / 2)}</span>
+              <span>{computedMaxPrice}+</span>
             </div>
+            <button
+              type="button"
+              className="crs-clear-btn"
+              style={{ marginTop: "0.6rem" }}
+              onClick={() => setPriceFilter(null)}
+            >
+              Reset Price
+            </button>
           </div>
         </div>
 
-        {/* Category */}
-        <div className='crs-filter-section'>
-          <div className='crs-filter-label'>
+        <div className="crs-filter-section">
+          <div className="crs-filter-label">
             Category
-            {categories.length > 0 && <span className='cnt'>{categories.length}</span>}
+            {categories.length > 0 && (
+              <span className="cnt">{categories.length}</span>
+            )}
           </div>
-          <ul className='crs-check-list'>
-            {categories.map(cat => (
-              <li key={cat.id} className='crs-check-item'>
+          <ul className="crs-check-list">
+            {categories.map((cat) => (
+              <li key={cat.id} className="crs-check-item">
                 <label htmlFor={`cat-${cat.id}`}>
                   <input
-                    type='checkbox' id={`cat-${cat.id}`} value={cat.id}
-                    defaultChecked={categoryChecked.includes(String(cat.id))}
+                    type="checkbox"
+                    id={`cat-${cat.id}`}
+                    value={cat.id}
+                    checked={categoryChecked.includes(String(cat.id))}
                     onChange={handleCategory}
                   />
                   {cat.name}
@@ -489,19 +611,20 @@ const Courses = () => {
           </ul>
         </div>
 
-        {/* Level */}
-        <div className='crs-filter-section'>
-          <div className='crs-filter-label'>
+        <div className="crs-filter-section">
+          <div className="crs-filter-label">
             Level
-            {levels.length > 0 && <span className='cnt'>{levels.length}</span>}
+            {levels.length > 0 && <span className="cnt">{levels.length}</span>}
           </div>
-          <ul className='crs-check-list'>
-            {levels.map(lv => (
-              <li key={lv.id} className='crs-check-item'>
+          <ul className="crs-check-list">
+            {levels.map((lv) => (
+              <li key={lv.id} className="crs-check-item">
                 <label htmlFor={`lv-${lv.id}`}>
                   <input
-                    type='checkbox' id={`lv-${lv.id}`} value={lv.id}
-                    defaultChecked={levelChecked.includes(String(lv.id))}
+                    type="checkbox"
+                    id={`lv-${lv.id}`}
+                    value={lv.id}
+                    checked={levelChecked.includes(String(lv.id))}
                     onChange={handleLevel}
                   />
                   {lv.name}
@@ -511,19 +634,22 @@ const Courses = () => {
           </ul>
         </div>
 
-        {/* Language */}
-        <div className='crs-filter-section'>
-          <div className='crs-filter-label'>
+        <div className="crs-filter-section">
+          <div className="crs-filter-label">
             Language
-            {languages.length > 0 && <span className='cnt'>{languages.length}</span>}
+            {languages.length > 0 && (
+              <span className="cnt">{languages.length}</span>
+            )}
           </div>
-          <ul className='crs-check-list'>
-            {languages.map(lang => (
-              <li key={lang.id} className='crs-check-item'>
+          <ul className="crs-check-list">
+            {languages.map((lang) => (
+              <li key={lang.id} className="crs-check-item">
                 <label htmlFor={`lang-${lang.id}`}>
                   <input
-                    type='checkbox' id={`lang-${lang.id}`} value={lang.id}
-                    defaultChecked={languageChecked.includes(String(lang.id))}
+                    type="checkbox"
+                    id={`lang-${lang.id}`}
+                    value={lang.id}
+                    checked={languageChecked.includes(String(lang.id))}
                     onChange={handleLanguage}
                   />
                   {lang.name}
@@ -532,90 +658,117 @@ const Courses = () => {
             ))}
           </ul>
         </div>
-
       </div>
     </>
-  )
+  );
 
   return (
     <Layout>
       <style>{css}</style>
-      <div className='crs-blob-wrap'>
-        <div className='crs-blob crs-blob-1' /><div className='crs-blob crs-blob-2' /><div className='crs-blob crs-blob-3' />
+
+      <div className="crs-blob-wrap">
+        <div className="crs-blob crs-blob-1" />
+        <div className="crs-blob crs-blob-2" />
+        <div className="crs-blob crs-blob-3" />
       </div>
 
-      <div className='crs-root'>
-        <div className='container crs-inner'>
-
-          {/* Hero */}
-          <div className='crs-hero'>
-            <div className='crs-hero-deco d1' /><div className='crs-hero-deco d2' /><div className='crs-hero-deco d3' />
-            <div className='crs-hero-content'>
-              <div className='crs-hero-eyebrow'>📚 All Courses</div>
-              <h1 className='crs-hero-title'>Find Your Next <em>Skill</em></h1>
-              <p className='crs-hero-sub'>Filter by category, level, language, and price to find exactly what you need.</p>
-              <div className='crs-bc'>
-                <a href='/'>Home</a>
+      <div className="crs-root">
+        <div className="container crs-inner">
+          <div className="crs-hero">
+            <div className="crs-hero-deco d1" />
+            <div className="crs-hero-deco d2" />
+            <div className="crs-hero-deco d3" />
+            <div className="crs-hero-content">
+              <div className="crs-hero-eyebrow">📚 All Courses</div>
+              <h1 className="crs-hero-title">
+                Find Your Next <em>Skill</em>
+              </h1>
+              <p className="crs-hero-sub">
+                Filter by category, level, language, and price to find exactly
+                what you need.
+              </p>
+              <div className="crs-bc">
+                <a href="/">Home</a>
                 <span>›</span>
-                <span style={{ color: 'rgba(255,255,255,0.8)' }}>Courses</span>
+                <span style={{ color: "rgba(255,255,255,0.8)" }}>Courses</span>
               </div>
             </div>
           </div>
 
-          {/* Search + sort bar */}
-          <div className='crs-search-bar'>
-            <div className='crs-search-input-wrap'>
-              <svg className='crs-search-icon' width='15' height='15' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                <circle cx='11' cy='11' r='8' strokeWidth='2' /><path d='M21 21l-4.35-4.35' strokeWidth='2' strokeLinecap='round' />
+          <div className="crs-search-bar">
+            <div className="crs-search-input-wrap">
+              <svg
+                className="crs-search-icon"
+                width="15"
+                height="15"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <circle cx="11" cy="11" r="8" strokeWidth="2" />
+                <path
+                  d="M21 21l-4.35-4.35"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
+
               <input
-                className='crs-search-input'
-                placeholder='Search courses by keyword...'
+                className="crs-search-input"
+                placeholder="Search courses by keyword..."
                 value={keyword}
-                onChange={e => setKeyword(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && fetchCourses()}
+                onChange={(e) => setKeyword(e.target.value)}
               />
             </div>
-            <select className='crs-sort-select' value={sort} onChange={e => setSort(e.target.value)}>
-              <option value='desc'>⬇ Newest First</option>
-              <option value='asc'>⬆ Oldest First</option>
+
+            <select
+              className="crs-sort-select"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+            >
+              <option value="desc">⬇ Newest First</option>
+              <option value="asc">⬆ Oldest First</option>
             </select>
+
             {!loading && (
-              <span className='crs-result-chip'>
-                <b>{displayedCourses.length}</b> course{displayedCourses.length !== 1 ? 's' : ''}
+              <span className="crs-result-chip">
+                <b>{displayedCourses.length}</b> course
+                {displayedCourses.length !== 1 ? "s" : ""}
               </span>
             )}
-            {/* Mobile filter btn */}
+
             <button
-              className={`crs-mob-filter-btn${activeCount > 0 ? ' has-active' : ''}`}
+              className={`crs-mob-filter-btn${activeCount > 0 ? " has-active" : ""}`}
               onClick={() => setMobOpen(true)}
             >
               ⚙ Filters {activeCount > 0 && `(${activeCount})`}
             </button>
           </div>
 
-          {/* Main layout */}
-          <div className='crs-layout'>
-
-            {/* Desktop sidebar */}
-            <div className='crs-sidebar-col'>
-              <div className='crs-sidebar'>
+          <div className="crs-layout">
+            <div className="crs-sidebar-col">
+              <div className="crs-sidebar">
                 <SidebarContent />
               </div>
             </div>
 
-            {/* Course grid */}
-            <div className='crs-main-col'>
+            <div className="crs-main-col">
               {loading ? (
-                <div className='crs-grid'>
-                  {[1,2,3,4,5,6].map(i => <div key={i} className='crs-skeleton' />)}
+                <div className="crs-grid">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="crs-skeleton" />
+                  ))}
                 </div>
               ) : displayedCourses.length === 0 ? (
                 <NotFound />
               ) : (
-                <div className='crs-grid'>
+                <div className="crs-grid">
                   {displayedCourses.map((course, idx) => (
-                    <div key={course.id} className='crs-card-wrap' style={{ animationDelay: `${idx * 0.045}s` }}>
+                    <div
+                      key={course.id}
+                      className="crs-card-wrap"
+                      style={{ animationDelay: `${idx * 0.045}s` }}
+                    >
                       <Course course={course} />
                     </div>
                   ))}
@@ -623,18 +776,21 @@ const Courses = () => {
               )}
             </div>
           </div>
-
         </div>
       </div>
 
-      {/* Mobile sidebar */}
-      <div className={`crs-mob-overlay${mobOpen ? ' open' : ''}`} onClick={() => setMobOpen(false)} />
-      <div className={`crs-mob-sidebar${mobOpen ? ' open' : ''}`}>
-        <button className='crs-mob-close' onClick={() => setMobOpen(false)}>✕</button>
+      <div
+        className={`crs-mob-overlay${mobOpen ? " open" : ""}`}
+        onClick={() => setMobOpen(false)}
+      />
+      <div className={`crs-mob-sidebar${mobOpen ? " open" : ""}`}>
+        <button className="crs-mob-close" onClick={() => setMobOpen(false)}>
+          ✕
+        </button>
         <SidebarContent />
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default Courses
+export default Courses;
