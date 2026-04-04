@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../../../common/Layout";
 import UserSidebar from "../../../common/UserSidebar";
-import { apiUrl, token } from "../../../common/Config";
+import { apiUrl, getToken } from "../../../common/Config";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -124,7 +124,7 @@ const MyLearning = () => {
           headers: {
             "Content-type": "application/json",
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${getToken}`,
           },
         });
         const result = await res.json();
@@ -174,18 +174,34 @@ const MyLearning = () => {
                 <div className="ml-hero-deco d2" />
                 <div className="ml-hero-left">
                   <div className="ml-hero-title">📚 My Learning</div>
-                  <div className="ml-hero-sub">All your enrolled courses in one place. Click any to continue learning.</div>
+                  <div className="ml-hero-sub">
+                    All your enrolled courses in one place. Click any to
+                    continue learning.
+                  </div>
                 </div>
                 <div className="ml-count-chip">
                   {enrollments.length}
-                  <span>course{enrollments.length !== 1 ? "s" : ""} enrolled</span>
+                  <span>
+                    course{enrollments.length !== 1 ? "s" : ""} enrolled
+                  </span>
                 </div>
               </div>
 
               <div className="ml-search-wrap">
-                <svg className="ml-search-icon" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg
+                  className="ml-search-icon"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
                   <circle cx="11" cy="11" r="8" strokeWidth="2" />
-                  <path d="M21 21l-4.35-4.35" strokeWidth="2" strokeLinecap="round" />
+                  <path
+                    d="M21 21l-4.35-4.35"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                 </svg>
                 <input
                   className="ml-search"
@@ -205,7 +221,11 @@ const MyLearning = () => {
                 <div className="ml-empty">
                   <div className="ml-empty-icon">📚</div>
                   <h3>No courses found</h3>
-                  <p>{search ? "Try a different keyword." : "You have not enrolled in any courses yet."}</p>
+                  <p>
+                    {search
+                      ? "Try a different keyword."
+                      : "You have not enrolled in any courses yet."}
+                  </p>
                 </div>
               ) : (
                 <div className="ml-grid">
@@ -241,7 +261,9 @@ const MyLearning = () => {
                             {title}
                           </h3>
                           <div className="ml-card-footer">
-                            <span className="ml-start-hint">Continue learning</span>
+                            <span className="ml-start-hint">
+                              Continue learning
+                            </span>
                             <span className="ml-open-chip">Open →</span>
                           </div>
                         </div>

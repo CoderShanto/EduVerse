@@ -3,7 +3,7 @@ import Layout from "../../../common/Layout";
 import UserSidebar from "../../../common/UserSidebar";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../../context/Auth";
-import { apiUrl, token as configToken } from "../../../common/Config";
+import { apiUrl, getToken as configToken } from "../../../common/Config";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;1,9..144,400&display=swap');
@@ -147,8 +147,10 @@ const buildImgCandidates = (raw, title) => {
   if (!s) return [placeholder];
 
   if (/^https?:\/\//i.test(s)) return [s, placeholder];
-  if (s.startsWith("/uploads") || s.startsWith("/storage")) return [`${backendBase}${s}`, placeholder];
-  if (s.startsWith("uploads/") || s.startsWith("storage/")) return [`${backendBase}/${s}`, placeholder];
+  if (s.startsWith("/uploads") || s.startsWith("/storage"))
+    return [`${backendBase}${s}`, placeholder];
+  if (s.startsWith("uploads/") || s.startsWith("storage/"))
+    return [`${backendBase}/${s}`, placeholder];
 
   return [
     `${backendBase}/uploads/course/small/${s}`,
@@ -161,7 +163,10 @@ const buildImgCandidates = (raw, title) => {
 
 // SmartImg: tries each candidate in order on error
 const SmartImg = ({ raw, title, className = "", style = {}, alt = "" }) => {
-  const candidates = useMemo(() => buildImgCandidates(raw, title), [raw, title]);
+  const candidates = useMemo(
+    () => buildImgCandidates(raw, title),
+    [raw, title],
+  );
   const [idx, setIdx] = useState(0);
   useEffect(() => setIdx(0), [raw, title]);
   return (
@@ -170,7 +175,9 @@ const SmartImg = ({ raw, title, className = "", style = {}, alt = "" }) => {
       alt={alt || title || "Course"}
       className={className}
       style={style}
-      onError={() => setIdx((prev) => (prev + 1 < candidates.length ? prev + 1 : prev))}
+      onError={() =>
+        setIdx((prev) => (prev + 1 < candidates.length ? prev + 1 : prev))
+      }
     />
   );
 };
@@ -197,13 +204,20 @@ const LiveClock = () => {
   return (
     <div className="sd-clock">
       <div className="sd-clock-time">
-        {hour}:{mm}<span className="sd-secs">:{ss}</span>
+        {hour}:{mm}
+        <span className="sd-secs">:{ss}</span>
         <span className="sd-clock-ampm">{ampm}</span>
       </div>
       <div className="sd-clock-date">
-        {now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+        {now.toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })}
       </div>
-      <div className="sd-clock-day">{now.toLocaleDateString("en-US", { weekday: "long" })}</div>
+      <div className="sd-clock-day">
+        {now.toLocaleDateString("en-US", { weekday: "long" })}
+      </div>
       <div className="sd-live-badge">Live</div>
     </div>
   );
@@ -214,8 +228,14 @@ const StudentDashboard = () => {
   const authToken = user?.token || user?.user?.token || configToken;
   const userName = user?.user?.name || user?.name || "Student";
   const initials = useMemo(
-    () => (userName || "Student").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase(),
-    [userName]
+    () =>
+      (userName || "Student")
+        .split(" ")
+        .map((w) => w[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase(),
+    [userName],
   );
 
   const [stats, setStats] = useState(null);
@@ -226,7 +246,9 @@ const StudentDashboard = () => {
   const enrolled = stats?.enrolled_courses ?? 0;
   const completed = stats?.completed_courses ?? 0;
   const streak = stats?.streak_days ?? 0;
-  const progressCourses = Array.isArray(stats?.progress_courses) ? stats.progress_courses : [];
+  const progressCourses = Array.isArray(stats?.progress_courses)
+    ? stats.progress_courses
+    : [];
   const WATCH_ROUTE_BASE = "/watch-course";
 
   useEffect(() => {
@@ -234,19 +256,30 @@ const StudentDashboard = () => {
       try {
         setLoading(true);
         const sR = await fetch(`${apiUrl}/dashboard/stats`, {
-          headers: { Accept: "application/json", Authorization: `Bearer ${authToken}` },
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
         });
         const sJ = await sR.json();
         setStats(sJ?.status === 200 ? sJ.stats : null);
 
         const pR = await fetch(`${apiUrl}/problems?page=1`, {
-          headers: { Accept: "application/json", Authorization: `Bearer ${authToken}` },
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
         });
         const pJ = await pR.json();
-        setLatestProblems((pJ?.status === 200 ? pJ.data?.data || [] : []).slice(0, 4));
+        setLatestProblems(
+          (pJ?.status === 200 ? pJ.data?.data || [] : []).slice(0, 4),
+        );
 
         const shR = await fetch(`${apiUrl}/showcases?page=1`, {
-          headers: { Accept: "application/json", Authorization: `Bearer ${authToken}` },
+          headers: {
+            Accept: "application/json",
+            Authorization: `Bearer ${authToken}`,
+          },
         });
         const shJ = await shR.json();
         const raw = shJ?.status === 200 ? shJ.data?.data || shJ.data || [] : [];
@@ -287,8 +320,12 @@ const StudentDashboard = () => {
                 <div className="sd-greeting-left">
                   <div className="sd-avatar">{initials}</div>
                   <div className="sd-greeting-text">
-                    <h2>Good {getTimeGreeting()}, {userName}! 👋</h2>
-                    <p>Learn courses &amp; build real projects in Innovation.</p>
+                    <h2>
+                      Good {getTimeGreeting()}, {userName}! 👋
+                    </h2>
+                    <p>
+                      Learn courses &amp; build real projects in Innovation.
+                    </p>
                   </div>
                 </div>
                 <LiveClock />
@@ -296,7 +333,9 @@ const StudentDashboard = () => {
 
               {loading ? (
                 <div className="sd-stats-row mb-4">
-                  {[1, 2, 3].map((i) => <div key={i} className="sd-skeleton" />)}
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="sd-skeleton" />
+                  ))}
                 </div>
               ) : (
                 <>
@@ -306,22 +345,39 @@ const StudentDashboard = () => {
                       <div className="sd-stat-icon">📚</div>
                       <div className="sd-num">{enrolled}</div>
                       <div className="sd-label">Enrolled Courses</div>
-                      <Link to="/account/student/my-learning" className="sd-stat-link">View All →</Link>
+                      <Link
+                        to="/account/student/my-learning"
+                        className="sd-stat-link"
+                      >
+                        View All →
+                      </Link>
                     </div>
                     <div className="sd-stat-card c-orange" data-num={completed}>
                       <div className="sd-stat-icon">✅</div>
                       <div className="sd-num">{completed}</div>
                       <div className="sd-label">Completed</div>
-                      <Link to="/account/certificates" className="sd-stat-link">Certificates →</Link>
+                      <Link to="/account/certificates" className="sd-stat-link">
+                        Certificates →
+                      </Link>
                     </div>
                     <div className="sd-stat-card c-green" data-num={streak}>
                       <div className="sd-stat-icon">🔥</div>
                       <div className="sd-num">{streak}</div>
                       <div className="sd-label">Day Streak</div>
                       {streak > 0 ? (
-                        <span className="sd-stat-link" style={{ cursor: "default", color: "var(--text3)" }}>Keep it going!</span>
+                        <span
+                          className="sd-stat-link"
+                          style={{ cursor: "default", color: "var(--text3)" }}
+                        >
+                          Keep it going!
+                        </span>
                       ) : (
-                        <Link to="/account/student/my-learning" className="sd-stat-link">Start today →</Link>
+                        <Link
+                          to="/account/student/my-learning"
+                          className="sd-stat-link"
+                        >
+                          Start today →
+                        </Link>
                       )}
                     </div>
                   </div>
@@ -331,43 +387,74 @@ const StudentDashboard = () => {
                     <div className="col-12">
                       <div className="sd-card">
                         <p className="sd-section-title">
-                          <span className="sd-dot" style={{ background: "var(--blue)" }} />
+                          <span
+                            className="sd-dot"
+                            style={{ background: "var(--blue)" }}
+                          />
                           Course Progress
                         </p>
                         {progressCourses.length > 0 ? (
                           <>
                             {progressCourses.map((c, i) => {
-                              const pct = Number.isFinite(Number(c.progress)) ? Number(c.progress) : 0;
+                              const pct = Number.isFinite(Number(c.progress))
+                                ? Number(c.progress)
+                                : 0;
                               // ✅ course_small_image is the correct field name from your API
                               // cleanImageUrl() inside buildImgCandidates will fix the corrupted URL
-                              const rawImg = c.course_small_image || c.image || "";
+                              const rawImg =
+                                c.course_small_image || c.image || "";
                               return (
-                                <div key={`${c.course_id}-${i}`} className="sd-course-row">
+                                <div
+                                  key={`${c.course_id}-${i}`}
+                                  className="sd-course-row"
+                                >
                                   <div className="sd-course-thumb">
-                                    <SmartImg raw={rawImg} title={c.title} alt={c.title || "Course"} />
+                                    <SmartImg
+                                      raw={rawImg}
+                                      title={c.title}
+                                      alt={c.title || "Course"}
+                                    />
                                   </div>
                                   <div className="sd-course-info">
-                                    <div className="sd-course-name">{c.title || "Untitled course"}</div>
-                                    <div className="sd-prog-track">
-                                      <div className="sd-prog-fill" style={{ width: `${pct}%` }} />
+                                    <div className="sd-course-name">
+                                      {c.title || "Untitled course"}
                                     </div>
-                                    <div className="sd-course-pct">{pct}% complete</div>
+                                    <div className="sd-prog-track">
+                                      <div
+                                        className="sd-prog-fill"
+                                        style={{ width: `${pct}%` }}
+                                      />
+                                    </div>
+                                    <div className="sd-course-pct">
+                                      {pct}% complete
+                                    </div>
                                   </div>
                                   {c.course_id && (
-                                    <Link to={`${WATCH_ROUTE_BASE}/${c.course_id}`} className="sd-continue-btn">
+                                    <Link
+                                      to={`${WATCH_ROUTE_BASE}/${c.course_id}`}
+                                      className="sd-continue-btn"
+                                    >
                                       Continue →
                                     </Link>
                                   )}
                                 </div>
                               );
                             })}
-                            <Link to="/account/student/my-learning" className="sd-hub-link" style={{ marginTop: "0.8rem" }}>
+                            <Link
+                              to="/account/student/my-learning"
+                              className="sd-hub-link"
+                              style={{ marginTop: "0.8rem" }}
+                            >
                               All courses →
                             </Link>
                           </>
                         ) : (
                           <div className="sd-muted">
-                            No course progress yet. Start from <Link to="/account/student/my-learning">My Courses</Link>.
+                            No course progress yet. Start from{" "}
+                            <Link to="/account/student/my-learning">
+                              My Courses
+                            </Link>
+                            .
                           </div>
                         )}
                       </div>
@@ -379,29 +466,62 @@ const StudentDashboard = () => {
                     <div className="col-md-6">
                       <div className="sd-card">
                         <p className="sd-section-title">
-                          <span className="sd-dot" style={{ background: "var(--yellow)" }} />
+                          <span
+                            className="sd-dot"
+                            style={{ background: "var(--yellow)" }}
+                          />
                           Innovation Spotlight
                         </p>
                         {latestProblems.length === 0 ? (
                           <div className="sd-muted">
-                            No problems yet. Post one in <Link to="/account/innovation">Problem Hub</Link>.
+                            No problems yet. Post one in{" "}
+                            <Link to="/account/innovation">Problem Hub</Link>.
                           </div>
                         ) : (
                           <div className="d-flex flex-column gap-2">
                             {latestProblems.map((p, idx) => (
-                              <div key={p.id} className="sd-list-row" style={{ animationDelay: `${idx * 0.06}s` }}>
+                              <div
+                                key={p.id}
+                                className="sd-list-row"
+                                style={{ animationDelay: `${idx * 0.06}s` }}
+                              >
                                 <div style={{ minWidth: 0, flex: 1 }}>
-                                  <div className="sd-list-row-title">{p.title}</div>
-                                  <div className="sd-list-row-sub">{String(p.description || "").slice(0, 70)}</div>
-                                  <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                                    <span className="sd-pill">{p.category || "General"}</span>
-                                    <span className="sd-pill">{p.status || "open"}</span>
+                                  <div className="sd-list-row-title">
+                                    {p.title}
+                                  </div>
+                                  <div className="sd-list-row-sub">
+                                    {String(p.description || "").slice(0, 70)}
+                                  </div>
+                                  <div
+                                    style={{
+                                      marginTop: 6,
+                                      display: "flex",
+                                      gap: 6,
+                                      flexWrap: "wrap",
+                                    }}
+                                  >
+                                    <span className="sd-pill">
+                                      {p.category || "General"}
+                                    </span>
+                                    <span className="sd-pill">
+                                      {p.status || "open"}
+                                    </span>
                                   </div>
                                 </div>
-                                <Link to={`/account/innovation/problem/${p.id}`} className="sd-view-btn">View →</Link>
+                                <Link
+                                  to={`/account/innovation/problem/${p.id}`}
+                                  className="sd-view-btn"
+                                >
+                                  View →
+                                </Link>
                               </div>
                             ))}
-                            <Link to="/account/innovation" className="sd-hub-link">Go to Problem Hub →</Link>
+                            <Link
+                              to="/account/innovation"
+                              className="sd-hub-link"
+                            >
+                              Go to Problem Hub →
+                            </Link>
                           </div>
                         )}
                       </div>
@@ -410,29 +530,63 @@ const StudentDashboard = () => {
                     <div className="col-md-6">
                       <div className="sd-card">
                         <p className="sd-section-title">
-                          <span className="sd-dot" style={{ background: "var(--green)" }} />
+                          <span
+                            className="sd-dot"
+                            style={{ background: "var(--green)" }}
+                          />
                           Showcase Spotlight
                         </p>
                         {latestShowcases.length === 0 ? (
                           <div className="sd-muted">
-                            No showcases yet. Build in <Link to="/account/innovation/my-teams">My Teams</Link> and publish.
+                            No showcases yet. Build in{" "}
+                            <Link to="/account/innovation/my-teams">
+                              My Teams
+                            </Link>{" "}
+                            and publish.
                           </div>
                         ) : (
                           <div className="d-flex flex-column gap-2">
                             {latestShowcases.map((s, idx) => (
-                              <div key={s.id || s.idea_id} className="sd-list-row" style={{ animationDelay: `${idx * 0.06}s` }}>
+                              <div
+                                key={s.id || s.idea_id}
+                                className="sd-list-row"
+                                style={{ animationDelay: `${idx * 0.06}s` }}
+                              >
                                 <div style={{ minWidth: 0, flex: 1 }}>
-                                  <div className="sd-list-row-title">{s.idea_title || s.title || "Showcase"}</div>
-                                  <div className="sd-list-row-sub">Problem: {s.problem_title || "—"}</div>
-                                  <div style={{ marginTop: 6, display: "flex", gap: 6, flexWrap: "wrap" }}>
-                                    <span className="sd-pill">Score: {s.score ?? 0}/10</span>
+                                  <div className="sd-list-row-title">
+                                    {s.idea_title || s.title || "Showcase"}
+                                  </div>
+                                  <div className="sd-list-row-sub">
+                                    Problem: {s.problem_title || "—"}
+                                  </div>
+                                  <div
+                                    style={{
+                                      marginTop: 6,
+                                      display: "flex",
+                                      gap: 6,
+                                      flexWrap: "wrap",
+                                    }}
+                                  >
+                                    <span className="sd-pill">
+                                      Score: {s.score ?? 0}/10
+                                    </span>
                                     <span className="sd-pill">Completed</span>
                                   </div>
                                 </div>
-                                <Link to={`/account/innovation/showcases/${s.id || s.idea_id}`} className="sd-view-btn">Open →</Link>
+                                <Link
+                                  to={`/account/innovation/showcases/${s.id || s.idea_id}`}
+                                  className="sd-view-btn"
+                                >
+                                  Open →
+                                </Link>
                               </div>
                             ))}
-                            <Link to="/account/innovation/showcase" className="sd-hub-link">Explore all →</Link>
+                            <Link
+                              to="/account/innovation/showcase"
+                              className="sd-hub-link"
+                            >
+                              Explore all →
+                            </Link>
                           </div>
                         )}
                       </div>

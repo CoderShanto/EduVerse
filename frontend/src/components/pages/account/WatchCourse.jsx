@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react'
-import Layout from '../../common/Layout'
-import Accordion from 'react-bootstrap/Accordion'
-import { MdSlowMotionVideo } from 'react-icons/md'
-import { IoMdCheckmarkCircleOutline } from 'react-icons/io'
-import { apiUrl, token } from '../../common/Config'
-import { Link, useParams } from 'react-router-dom'
-import ReactPlayer from 'react-player'
-import toast from 'react-hot-toast'
+import React, { useEffect, useState } from "react";
+import Layout from "../../common/Layout";
+import Accordion from "react-bootstrap/Accordion";
+import { MdSlowMotionVideo } from "react-icons/md";
+import { IoMdCheckmarkCircleOutline } from "react-icons/io";
+import { apiUrl, getToken } from "../../common/Config";
+import { Link, useParams } from "react-router-dom";
+import ReactPlayer from "react-player";
+import toast from "react-hot-toast";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -305,134 +305,162 @@ const css = `
     .wc-lesson-meta { padding: 1rem 1rem 1.2rem; }
     .wc-lesson-nav { padding: 0.8rem 1rem; }
   }
-`
+`;
 
 const WatchCourse = () => {
-  const [course, setCourse] = useState(null)
-  const [activeLesson, setActiveLesson] = useState(null)
-  const [completedLessons, setCompletedLessons] = useState([])
-  const [progress, setProgress] = useState(0)
-  const [openChapters, setOpenChapters] = useState({})
-  const params = useParams()
+  const [course, setCourse] = useState(null);
+  const [activeLesson, setActiveLesson] = useState(null);
+  const [completedLessons, setCompletedLessons] = useState([]);
+  const [progress, setProgress] = useState(0);
+  const [openChapters, setOpenChapters] = useState({});
+  const params = useParams();
 
   const fetchCourse = async () => {
     await fetch(`${apiUrl}/enroll/${params.id}`, {
-      method: 'GET',
-      headers: { 'Content-type': 'application/json', Accept: 'application/json', Authorization: `Bearer ${token}` },
+      method: "GET",
+      headers: {
+        "Content-type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${getToken}`,
+      },
     })
-      .then(res => res.json())
-      .then(result => {
+      .then((res) => res.json())
+      .then((result) => {
         if (result.status == 200) {
-          setCourse(result.data)
-          setActiveLesson(result.activeLesson)
-          setCompletedLessons(result.completedLessons)
-          setProgress(result.progress)
+          setCourse(result.data);
+          setActiveLesson(result.activeLesson);
+          setCompletedLessons(result.completedLessons);
+          setProgress(result.progress);
           // open active chapter by default
           if (result.activeLesson?.chapter_id) {
-            setOpenChapters({ [result.activeLesson.chapter_id]: true })
+            setOpenChapters({ [result.activeLesson.chapter_id]: true });
           }
         }
-      })
-  }
+      });
+  };
 
   const showLesson = async (lesson) => {
-    setActiveLesson(lesson)
-    setOpenChapters(p => ({ ...p, [lesson.chapter_id]: true }))
-    const data = { lesson_id: lesson.id, chapter_id: lesson.chapter_id, course_id: params.id }
+    setActiveLesson(lesson);
+    setOpenChapters((p) => ({ ...p, [lesson.chapter_id]: true }));
+    const data = {
+      lesson_id: lesson.id,
+      chapter_id: lesson.chapter_id,
+      course_id: params.id,
+    };
     await fetch(`${apiUrl}/save-activity`, {
-      method: 'POST',
-      headers: { 'Content-type': 'application/json', Accept: 'application/json', Authorization: `Bearer ${token}` },
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${getToken}`,
+      },
       body: JSON.stringify(data),
-    })
-  }
+    });
+  };
 
   const markAsComplete = async (lesson) => {
-    const data = { lesson_id: lesson.id, chapter_id: lesson.chapter_id, course_id: params.id }
+    const data = {
+      lesson_id: lesson.id,
+      chapter_id: lesson.chapter_id,
+      course_id: params.id,
+    };
     await fetch(`${apiUrl}/mark-as-complete`, {
-      method: 'POST',
-      headers: { 'Content-type': 'application/json', Accept: 'application/json', Authorization: `Bearer ${token}` },
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${getToken}`,
+      },
       body: JSON.stringify(data),
     })
-      .then(res => res.json())
-      .then(result => {
+      .then((res) => res.json())
+      .then((result) => {
         if (result.status == 200) {
-          toast.success(result.message)
-          setCompletedLessons(result.completedLessons)
-          setProgress(result.progress)
+          toast.success(result.message);
+          setCompletedLessons(result.completedLessons);
+          setProgress(result.progress);
         }
-      })
-  }
+      });
+  };
 
   // Flat list of all lessons for prev/next
-  const allLessons = course?.chapters?.flatMap(ch => ch.lessons || []) || []
-  const currentIdx = allLessons.findIndex(l => l.id === activeLesson?.id)
-  const prevLesson = currentIdx > 0 ? allLessons[currentIdx - 1] : null
-  const nextLesson = currentIdx < allLessons.length - 1 ? allLessons[currentIdx + 1] : null
+  const allLessons = course?.chapters?.flatMap((ch) => ch.lessons || []) || [];
+  const currentIdx = allLessons.findIndex((l) => l.id === activeLesson?.id);
+  const prevLesson = currentIdx > 0 ? allLessons[currentIdx - 1] : null;
+  const nextLesson =
+    currentIdx < allLessons.length - 1 ? allLessons[currentIdx + 1] : null;
 
-  const totalLessons = allLessons.length
-  const completedCount = completedLessons.length
+  const totalLessons = allLessons.length;
+  const completedCount = completedLessons.length;
 
-  useEffect(() => { fetchCourse() }, [])
+  useEffect(() => {
+    fetchCourse();
+  }, []);
 
   return (
     <Layout>
       <style>{css}</style>
-      <div className='wc-root'>
-
+      <div className="wc-root">
         {/* ─── TOP BAR ─── */}
-        <div className='wc-topbar'>
-          <Link to='/account/student/my-learning' className='wc-back-btn'>← Back</Link>
-          <div className='wc-topbar-title'>
-            {course?.title || 'Loading…'}
-          </div>
+        <div className="wc-topbar">
+          <Link to="/account/student/my-learning" className="wc-back-btn">
+            ← Back
+          </Link>
+          <div className="wc-topbar-title">{course?.title || "Loading…"}</div>
           {course && (
-            <div className='wc-topbar-progress'>
-              <div className='wc-progress-track'>
-                <div className='wc-progress-fill' style={{ width: `${progress}%` }} />
+            <div className="wc-topbar-progress">
+              <div className="wc-progress-track">
+                <div
+                  className="wc-progress-fill"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
-              <span className='wc-progress-pct'>{progress}%</span>
+              <span className="wc-progress-pct">{progress}%</span>
             </div>
           )}
         </div>
 
         {/* ─── BODY ─── */}
-        <div className='wc-body'>
-
+        <div className="wc-body">
           {/* Video column */}
-          <div className='wc-video-col'>
-
+          <div className="wc-video-col">
             {/* Player */}
-            <div className='wc-player-wrap'>
+            <div className="wc-player-wrap">
               {activeLesson?.video_url ? (
                 <ReactPlayer
-                  width='100%' height='100%'
+                  width="100%"
+                  height="100%"
                   controls
-                  config={{ file: { attributes: { controlsList: 'nodownload' } } }}
+                  config={{
+                    file: { attributes: { controlsList: "nodownload" } },
+                  }}
                   url={activeLesson.video_url}
                 />
               ) : (
-                <div className='wc-empty-player'>
-                  <div className='wc-empty-player-icon'>▶</div>
-                  <div className='wc-empty-player-text'>Select a lesson to start watching</div>
+                <div className="wc-empty-player">
+                  <div className="wc-empty-player-icon">▶</div>
+                  <div className="wc-empty-player-text">
+                    Select a lesson to start watching
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Lesson nav */}
             {activeLesson && (
-              <div className='wc-lesson-nav'>
+              <div className="wc-lesson-nav">
                 <button
-                  className='wc-nav-btn'
+                  className="wc-nav-btn"
                   disabled={!prevLesson}
                   onClick={() => prevLesson && showLesson(prevLesson)}
                 >
                   ← Previous
                 </button>
                 <button
-                  className='wc-nav-btn'
+                  className="wc-nav-btn"
                   disabled={!nextLesson}
                   onClick={() => nextLesson && showLesson(nextLesson)}
-                  style={{ marginLeft: 'auto' }}
+                  style={{ marginLeft: "auto" }}
                 >
                   Next →
                 </button>
@@ -441,87 +469,117 @@ const WatchCourse = () => {
 
             {/* Lesson meta */}
             {activeLesson && (
-              <div className='wc-lesson-meta'>
-                <div className='wc-lesson-header'>
-                  <h2 className='wc-lesson-title'>{activeLesson.title}</h2>
+              <div className="wc-lesson-meta">
+                <div className="wc-lesson-header">
+                  <h2 className="wc-lesson-title">{activeLesson.title}</h2>
                   <button
-                    className={`wc-complete-btn${completedLessons.includes(activeLesson.id) ? ' done' : ''}`}
-                    onClick={() => !completedLessons.includes(activeLesson.id) && markAsComplete(activeLesson)}
+                    className={`wc-complete-btn${completedLessons.includes(activeLesson.id) ? " done" : ""}`}
+                    onClick={() =>
+                      !completedLessons.includes(activeLesson.id) &&
+                      markAsComplete(activeLesson)
+                    }
                   >
                     <IoMdCheckmarkCircleOutline size={17} />
-                    {completedLessons.includes(activeLesson.id) ? 'Completed!' : 'Mark Complete'}
+                    {completedLessons.includes(activeLesson.id)
+                      ? "Completed!"
+                      : "Mark Complete"}
                   </button>
                 </div>
                 {activeLesson.description && (
                   <div
-                    className='wc-lesson-desc'
-                    dangerouslySetInnerHTML={{ __html: activeLesson.description }}
+                    className="wc-lesson-desc"
+                    dangerouslySetInnerHTML={{
+                      __html: activeLesson.description,
+                    }}
                   />
                 )}
               </div>
             )}
-
           </div>
 
           {/* ─── Sidebar ─── */}
           {course && (
-            <div className='wc-sidebar'>
-              <div className='wc-sidebar-header'>
-                <div className='wc-sidebar-course-title'>{course.title}</div>
-                <div className='wc-sidebar-stats'>
-                  <span className='wc-sidebar-chip blue'>📖 {course.chapters?.length || 0} Chapters</span>
-                  <span className='wc-sidebar-chip'>🎬 {totalLessons} Lessons</span>
-                  <span className={`wc-sidebar-chip${completedCount === totalLessons && totalLessons > 0 ? ' green' : ''}`}>
+            <div className="wc-sidebar">
+              <div className="wc-sidebar-header">
+                <div className="wc-sidebar-course-title">{course.title}</div>
+                <div className="wc-sidebar-stats">
+                  <span className="wc-sidebar-chip blue">
+                    📖 {course.chapters?.length || 0} Chapters
+                  </span>
+                  <span className="wc-sidebar-chip">
+                    🎬 {totalLessons} Lessons
+                  </span>
+                  <span
+                    className={`wc-sidebar-chip${completedCount === totalLessons && totalLessons > 0 ? " green" : ""}`}
+                  >
                     ✓ {completedCount}/{totalLessons} Done
                   </span>
                 </div>
               </div>
 
-              <div className='wc-sidebar-scroll'>
-                {course.chapters?.map(chapter => {
-                  const isOpen = !!openChapters[chapter.id]
-                  const chapterCompleted = chapter.lessons?.filter(l => completedLessons.includes(l.id)).length || 0
+              <div className="wc-sidebar-scroll">
+                {course.chapters?.map((chapter) => {
+                  const isOpen = !!openChapters[chapter.id];
+                  const chapterCompleted =
+                    chapter.lessons?.filter((l) =>
+                      completedLessons.includes(l.id),
+                    ).length || 0;
                   return (
-                    <div key={chapter.id} className='wc-chapter'>
+                    <div key={chapter.id} className="wc-chapter">
                       <div
-                        className='wc-chapter-header'
-                        onClick={() => setOpenChapters(p => ({ ...p, [chapter.id]: !p[chapter.id] }))}
+                        className="wc-chapter-header"
+                        onClick={() =>
+                          setOpenChapters((p) => ({
+                            ...p,
+                            [chapter.id]: !p[chapter.id],
+                          }))
+                        }
                       >
-                        <div className='wc-chapter-title'>{chapter.title}</div>
-                        <span className='wc-chapter-count'>{chapterCompleted}/{chapter.lessons?.length || 0}</span>
-                        <span className={`wc-chapter-arrow${isOpen ? ' open' : ''}`}>▶</span>
+                        <div className="wc-chapter-title">{chapter.title}</div>
+                        <span className="wc-chapter-count">
+                          {chapterCompleted}/{chapter.lessons?.length || 0}
+                        </span>
+                        <span
+                          className={`wc-chapter-arrow${isOpen ? " open" : ""}`}
+                        >
+                          ▶
+                        </span>
                       </div>
 
-                      {isOpen && chapter.lessons?.map(lesson => {
-                        const isActive = activeLesson?.id === lesson.id
-                        const isDone = completedLessons.includes(lesson.id)
-                        return (
-                          <div
-                            key={lesson.id}
-                            className={`wc-lesson-row${isActive ? ' active' : ''}`}
-                            onClick={() => showLesson(lesson)}
-                          >
-                            <div className={`wc-lesson-check${isDone ? ' completed' : isActive ? ' active-ring' : ''}`}>
-                              {isDone ? '✓' : isActive ? '▶' : ''}
+                      {isOpen &&
+                        chapter.lessons?.map((lesson) => {
+                          const isActive = activeLesson?.id === lesson.id;
+                          const isDone = completedLessons.includes(lesson.id);
+                          return (
+                            <div
+                              key={lesson.id}
+                              className={`wc-lesson-row${isActive ? " active" : ""}`}
+                              onClick={() => showLesson(lesson)}
+                            >
+                              <div
+                                className={`wc-lesson-check${isDone ? " completed" : isActive ? " active-ring" : ""}`}
+                              >
+                                {isDone ? "✓" : isActive ? "▶" : ""}
+                              </div>
+                              <span
+                                className={`wc-lesson-row-title${isDone ? " completed" : ""}`}
+                              >
+                                {lesson.title}
+                              </span>
+                              {isActive && <div className="wc-play-dot">▶</div>}
                             </div>
-                            <span className={`wc-lesson-row-title${isDone ? ' completed' : ''}`}>
-                              {lesson.title}
-                            </span>
-                            {isActive && <div className='wc-play-dot'>▶</div>}
-                          </div>
-                        )
-                      })}
+                          );
+                        })}
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
           )}
-
         </div>
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default WatchCourse
+export default WatchCourse;
