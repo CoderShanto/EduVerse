@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react'
-import Course from './Course'
-import { apiUrl, token } from './Config'
+import React, { useEffect, useState } from "react";
+import Course from "./Course";
+import { apiUrl, getToken } from "./Config";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -151,65 +151,79 @@ const css = `
   @media (max-width: 400px) {
     .fco-grid { grid-template-columns: 1fr; }
   }
-`
+`;
 
 const FeaturedCourses = () => {
-  const [courses, setCourses] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchFeaturedCourses = () => {
-    setLoading(true)
+    setLoading(true);
     fetch(`${apiUrl}/fetch-featured-courses`, {
-      method: 'GET',
-      headers: { 'Content-type': 'application/json', Accept: 'application/json', Authorization: `Bearer ${token}` },
+      method: "GET",
+      headers: {
+        "Content-type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${getToken}`,
+      },
     })
-      .then(res => res.json())
-      .then(result => {
-        if (result.status == 200) setCourses(result.data)
-        else console.log('Something went wrong')
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.status == 200) setCourses(result.data);
+        else console.log("Something went wrong");
       })
-      .finally(() => setLoading(false))
-  }
+      .finally(() => setLoading(false));
+  };
 
-  useEffect(() => { fetchFeaturedCourses() }, [])
+  useEffect(() => {
+    fetchFeaturedCourses();
+  }, []);
 
   return (
     <>
       <style>{css}</style>
-      <section className='fco-section'>
-        <div className='fco-deco-blob fco-deco-blob-1' />
-        <div className='fco-deco-blob fco-deco-blob-2' />
+      <section className="fco-section">
+        <div className="fco-deco-blob fco-deco-blob-1" />
+        <div className="fco-deco-blob fco-deco-blob-2" />
 
-        <div className='container'>
-
+        <div className="container">
           {/* Header */}
-          <div className='fco-header'>
-            <div className='fco-header-left'>
-              <div className='fco-eyebrow'>Featured</div>
-              <h2 className='fco-title'>Top <em>Courses</em> for You</h2>
-              <p className='fco-subtitle'>Discover courses designed to help you excel in your professional and personal growth.</p>
+          <div className="fco-header">
+            <div className="fco-header-left">
+              <div className="fco-eyebrow">Featured</div>
+              <h2 className="fco-title">
+                Top <em>Courses</em> for You
+              </h2>
+              <p className="fco-subtitle">
+                Discover courses designed to help you excel in your professional
+                and personal growth.
+              </p>
             </div>
             {/* <a href='/courses' className='fco-view-all'>View All <span>→</span></a> */}
           </div>
 
           {/* Count */}
           {!loading && courses.length > 0 && (
-            <div className='fco-count-strip'>
-              <span className='fco-count-chip'><b>{courses.length}</b> courses available</span>
+            <div className="fco-count-strip">
+              <span className="fco-count-chip">
+                <b>{courses.length}</b> courses available
+              </span>
             </div>
           )}
 
           {/* Grid */}
           {loading ? (
-            <div className='fco-grid'>
-              {[1,2,3,4].map(i => <div key={i} className='fco-skeleton' />)}
+            <div className="fco-grid">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="fco-skeleton" />
+              ))}
             </div>
           ) : (
-            <div className='fco-grid'>
+            <div className="fco-grid">
               {courses.map((course, idx) => (
                 <div
                   key={course.id || course._id || idx}
-                  className='fco-card-wrap'
+                  className="fco-card-wrap"
                   style={{ animationDelay: `${idx * 0.06}s` }}
                 >
                   <Course course={course} />
@@ -217,11 +231,10 @@ const FeaturedCourses = () => {
               ))}
             </div>
           )}
-
         </div>
       </section>
     </>
-  )
-}
+  );
+};
 
-export default FeaturedCourses
+export default FeaturedCourses;
