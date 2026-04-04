@@ -1,11 +1,12 @@
-// frontend/src/components/common/Config.jsx
 export const apiUrl = import.meta.env.VITE_API_URL;
 
-/**
- * Always read token fresh from localStorage.
- * (Fixes "token stale after login" problem)
- */
+// always get latest token at call time
 export const getToken = () => {
+  const directToken = localStorage.getItem("token");
+  if (directToken && directToken !== "undefined" && directToken !== "null") {
+    return directToken;
+  }
+
   const userInfo = localStorage.getItem("userInfoLms");
   try {
     return userInfo ? JSON.parse(userInfo).token : null;
@@ -13,6 +14,10 @@ export const getToken = () => {
     return null;
   }
 };
+
+// keep compatibility with old code that imports `token`
+// but make sure new code prefers getToken()
+export const token = getToken();
 
 export function convertMinutesToHours(minutes) {
   let hours = Math.floor(minutes / 60);
