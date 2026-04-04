@@ -1,44 +1,64 @@
-import React, { useEffect, useState } from 'react'
-import { apiUrl, token } from './Config'
-import { Link } from 'react-router-dom'
+import React, { useEffect, useState } from "react";
+import { apiUrl, getToken } from "./Config";
+import { Link } from "react-router-dom";
 
 const CATEGORY_ICONS = {
-  'ai': '🤖', 'artificial intelligence': '🤖',
-  'web': '🌐', 'web development': '🌐',
-  'design': '🎨', 'ui': '🎨', 'ux': '🎨',
-  'data': '📊', 'data science': '📊', 'analytics': '📊',
-  'mobile': '📱', 'android': '📱', 'ios': '📱',
-  'business': '💼', 'management': '💼',
-  'marketing': '📣', 'digital marketing': '📣',
-  'security': '🔐', 'cybersecurity': '🔐',
-  'cloud': '☁️', 'devops': '☁️',
-  'python': '🐍', 'javascript': '⚡', 'java': '☕',
-  'health': '❤️', 'fitness': '❤️',
-  'finance': '💰', 'accounting': '💰',
-  'education': '📚', 'language': '🗣️',
-  'photography': '📷', 'video': '🎬',
-  'music': '🎵', 'art': '🖌️',
-  'science': '🔬', 'math': '🧮',
-}
+  ai: "🤖",
+  "artificial intelligence": "🤖",
+  web: "🌐",
+  "web development": "🌐",
+  design: "🎨",
+  ui: "🎨",
+  ux: "🎨",
+  data: "📊",
+  "data science": "📊",
+  analytics: "📊",
+  mobile: "📱",
+  android: "📱",
+  ios: "📱",
+  business: "💼",
+  management: "💼",
+  marketing: "📣",
+  "digital marketing": "📣",
+  security: "🔐",
+  cybersecurity: "🔐",
+  cloud: "☁️",
+  devops: "☁️",
+  python: "🐍",
+  javascript: "⚡",
+  java: "☕",
+  health: "❤️",
+  fitness: "❤️",
+  finance: "💰",
+  accounting: "💰",
+  education: "📚",
+  language: "🗣️",
+  photography: "📷",
+  video: "🎬",
+  music: "🎵",
+  art: "🖌️",
+  science: "🔬",
+  math: "🧮",
+};
 
-const getIcon = (name = '') => {
-  const lower = name.toLowerCase()
+const getIcon = (name = "") => {
+  const lower = name.toLowerCase();
   for (const [key, icon] of Object.entries(CATEGORY_ICONS)) {
-    if (lower.includes(key)) return icon
+    if (lower.includes(key)) return icon;
   }
-  return '📘'
-}
+  return "📘";
+};
 
 const GRADIENTS = [
-  'linear-gradient(135deg,#4f6ef7,#818cf8)',
-  'linear-gradient(135deg,#7c5cbf,#a855f7)',
-  'linear-gradient(135deg,#ff7140,#fb923c)',
-  'linear-gradient(135deg,#22c98e,#34d399)',
-  'linear-gradient(135deg,#ffb020,#fbbf24)',
-  'linear-gradient(135deg,#06b6d4,#22d3ee)',
-  'linear-gradient(135deg,#ec4899,#f472b6)',
-  'linear-gradient(135deg,#6366f1,#818cf8)',
-]
+  "linear-gradient(135deg,#4f6ef7,#818cf8)",
+  "linear-gradient(135deg,#7c5cbf,#a855f7)",
+  "linear-gradient(135deg,#ff7140,#fb923c)",
+  "linear-gradient(135deg,#22c98e,#34d399)",
+  "linear-gradient(135deg,#ffb020,#fbbf24)",
+  "linear-gradient(135deg,#06b6d4,#22d3ee)",
+  "linear-gradient(135deg,#ec4899,#f472b6)",
+  "linear-gradient(135deg,#6366f1,#818cf8)",
+];
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -193,76 +213,91 @@ const css = `
     .fc-grid { grid-template-columns: 1fr 1fr; }
     .fc-section { padding: 3.5rem 0 2.5rem; }
   }
-`
+`;
 
 const FeaturedCategories = () => {
-  const [categories, setCategories] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchCategories = () => {
-    setLoading(true)
+    setLoading(true);
     fetch(`${apiUrl}/fetch-categories`, {
-      method: 'GET',
-      headers: { 'Content-type': 'application/json', Accept: 'application/json', Authorization: `Bearer ${token}` },
+      method: "GET",
+      headers: {
+        "Content-type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${getToken}`,
+      },
     })
-      .then(res => res.json())
-      .then(result => {
-        if (result.status == 200) setCategories(result.data)
-        else console.log('Something went wrong')
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.status == 200) setCategories(result.data);
+        else console.log("Something went wrong");
       })
-      .finally(() => setLoading(false))
-  }
+      .finally(() => setLoading(false));
+  };
 
-  useEffect(() => { fetchCategories() }, [])
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   return (
     <>
       <style>{css}</style>
-      <section className='fc-section'>
-        <div className='fc-bg-blob fc-bg-blob-1' />
-        <div className='fc-bg-blob fc-bg-blob-2' />
+      <section className="fc-section">
+        <div className="fc-bg-blob fc-bg-blob-1" />
+        <div className="fc-bg-blob fc-bg-blob-2" />
 
-        <div className='container'>
+        <div className="container">
           {/* Header */}
-          <div className='fc-header'>
-            <div className='fc-eyebrow'>Explore</div>
-            <h2 className='fc-title'>Browse by <em>Category</em></h2>
-            <p className='fc-subtitle'>Discover courses designed to help you excel in your professional and personal growth.</p>
+          <div className="fc-header">
+            <div className="fc-eyebrow">Explore</div>
+            <h2 className="fc-title">
+              Browse by <em>Category</em>
+            </h2>
+            <p className="fc-subtitle">
+              Discover courses designed to help you excel in your professional
+              and personal growth.
+            </p>
           </div>
 
           {/* Grid */}
           {loading ? (
-            <div className='fc-grid'>
-              {[1,2,3,4,5,6,7,8].map(i => <div key={i} className='fc-skeleton' />)}
+            <div className="fc-grid">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="fc-skeleton" />
+              ))}
             </div>
           ) : (
-            <div className='fc-grid'>
+            <div className="fc-grid">
               {categories.map((cat, idx) => {
-                const grad = GRADIENTS[idx % GRADIENTS.length]
-                const icon = getIcon(cat.name)
+                const grad = GRADIENTS[idx % GRADIENTS.length];
+                const icon = getIcon(cat.name);
                 return (
                   <Link
                     key={cat.id}
                     to={`/courses?category=${cat.id}`}
-                    className='fc-card'
+                    className="fc-card"
                     data-num={idx + 1}
                     style={{ animationDelay: `${idx * 0.045}s` }}
                   >
-                    <div className='fc-icon-wrap' style={{ background: grad }}>
+                    <div className="fc-icon-wrap" style={{ background: grad }}>
                       {icon}
                     </div>
-                    <div className='fc-cat-name'>{cat.name}</div>
-                    <div className='fc-card-arrow'>Explore <span>→</span></div>
+                    <div className="fc-cat-name">{cat.name}</div>
+                    <div className="fc-card-arrow">
+                      Explore <span>→</span>
+                    </div>
                   </Link>
-                )
+                );
               })}
             </div>
           )}
 
           {/* Footer CTA */}
           {!loading && categories.length > 0 && (
-            <div className='fc-footer'>
-              <Link to='/courses' className='fc-view-all'>
+            <div className="fc-footer">
+              <Link to="/courses" className="fc-view-all">
                 View All Courses <span>→</span>
               </Link>
             </div>
@@ -270,7 +305,7 @@ const FeaturedCategories = () => {
         </div>
       </section>
     </>
-  )
-}
+  );
+};
 
-export default FeaturedCategories
+export default FeaturedCategories;
