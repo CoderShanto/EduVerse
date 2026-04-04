@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react'
-import Layout from '../../common/Layout'
-import { Link, useParams } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { apiUrl, token as configToken } from '../../common/Config'
-import { AuthContext } from '../../context/Auth'
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import Layout from "../../common/Layout";
+import { Link, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import { apiUrl, getToken as configToken } from "../../common/Config";
+import { AuthContext } from "../../context/Auth";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -231,250 +231,359 @@ const css = `
   @keyframes pd-up { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
 
   @media (max-width: 600px) { .pd-hero { flex-direction: column; } }
-`
+`;
 
 const ProblemDetails = () => {
-  const { id } = useParams()
-  const { user } = useContext(AuthContext)
-  const [joining, setJoining] = useState(false)
+  const { id } = useParams();
+  const { user } = useContext(AuthContext);
+  const [joining, setJoining] = useState(false);
 
-  const role = user?.user?.role ? String(user.user.role).toLowerCase().trim() : ''
-  const isMentorRole = ['admin', 'instructor', 'mentor'].includes(role)
-  const authToken = user?.token || user?.user?.token || configToken
+  const role = user?.user?.role
+    ? String(user.user.role).toLowerCase().trim()
+    : "";
+  const isMentorRole = ["admin", "instructor", "mentor"].includes(role);
+  const authToken = user?.token || user?.user?.token || configToken;
 
-  const [loading, setLoading] = useState(true)
-  const [problem, setProblem] = useState(null)
-  const [ideas, setIdeas] = useState([])
-  const [myVotes, setMyVotes] = useState([])
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [ideaForm, setIdeaForm] = useState({ title: '', description: '' })
-  const [submittingIdea, setSubmittingIdea] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [problem, setProblem] = useState(null);
+  const [ideas, setIdeas] = useState([]);
+  const [myVotes, setMyVotes] = useState([]);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [ideaForm, setIdeaForm] = useState({ title: "", description: "" });
+  const [submittingIdea, setSubmittingIdea] = useState(false);
 
-  const votedSet = useMemo(() => new Set(myVotes || []), [myVotes])
+  const votedSet = useMemo(() => new Set(myVotes || []), [myVotes]);
 
   const joinTeam = async (ideaId) => {
     try {
-      setJoining(true)
+      setJoining(true);
       const res = await fetch(`${apiUrl}/ideas/${ideaId}/join`, {
-        method: 'POST',
-        headers: { Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      })
-      const result = await res.json()
-      if (result.status === 200) { toast.success(result.message || 'Joined team!'); setRefreshKey(k => k + 1) }
-      else toast.error(result.message || 'Join failed')
-    } catch (e) { console.log(e); toast.error('Server error joining team') }
-    finally { setJoining(false) }
-  }
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const result = await res.json();
+      if (result.status === 200) {
+        toast.success(result.message || "Joined team!");
+        setRefreshKey((k) => k + 1);
+      } else toast.error(result.message || "Join failed");
+    } catch (e) {
+      console.log(e);
+      toast.error("Server error joining team");
+    } finally {
+      setJoining(false);
+    }
+  };
 
   const fetchDetails = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const res = await fetch(`${apiUrl}/problems/${id}`, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      })
-      const result = await res.json()
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const result = await res.json();
       if (result.status === 200) {
-        setProblem(result.data.problem)
-        setIdeas(result.data.problem?.ideas || [])
-        setMyVotes(result.data.my_voted_idea_ids || [])
-      } else toast.error(result.message || 'Failed to load problem')
-    } catch (e) { console.log(e); toast.error('Server error loading problem') }
-    finally { setLoading(false) }
-  }
+        setProblem(result.data.problem);
+        setIdeas(result.data.problem?.ideas || []);
+        setMyVotes(result.data.my_voted_idea_ids || []);
+      } else toast.error(result.message || "Failed to load problem");
+    } catch (e) {
+      console.log(e);
+      toast.error("Server error loading problem");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => { if (authToken && id) fetchDetails() }, [id, authToken, refreshKey])
+  useEffect(() => {
+    if (authToken && id) fetchDetails();
+  }, [id, authToken, refreshKey]);
 
   const addIdea = async (e) => {
-    e.preventDefault()
-    if (!ideaForm.title.trim() || !ideaForm.description.trim()) { toast.error('Title and description are required'); return }
+    e.preventDefault();
+    if (!ideaForm.title.trim() || !ideaForm.description.trim()) {
+      toast.error("Title and description are required");
+      return;
+    }
     try {
-      setSubmittingIdea(true)
+      setSubmittingIdea(true);
       const res = await fetch(`${apiUrl}/problems/${id}/ideas`, {
-        method: 'POST',
-        headers: { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({ title: ideaForm.title, description: ideaForm.description }),
-      })
-      const result = await res.json()
-      if (result.status === 200) { toast.success('Idea added'); setIdeaForm({ title: '', description: '' }); setRefreshKey(k => k + 1) }
-      else if (result.status === 422) toast.error('Validation failed')
-      else toast.error(result.message || 'Failed to add idea')
-    } catch (e) { console.log(e); toast.error('Server error adding idea') }
-    finally { setSubmittingIdea(false) }
-  }
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          title: ideaForm.title,
+          description: ideaForm.description,
+        }),
+      });
+      const result = await res.json();
+      if (result.status === 200) {
+        toast.success("Idea added");
+        setIdeaForm({ title: "", description: "" });
+        setRefreshKey((k) => k + 1);
+      } else if (result.status === 422) toast.error("Validation failed");
+      else toast.error(result.message || "Failed to add idea");
+    } catch (e) {
+      console.log(e);
+      toast.error("Server error adding idea");
+    } finally {
+      setSubmittingIdea(false);
+    }
+  };
 
   const toggleVote = async (ideaId) => {
     try {
       const res = await fetch(`${apiUrl}/ideas/${ideaId}/vote`, {
-        method: 'POST',
-        headers: { Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      })
-      const result = await res.json()
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const result = await res.json();
       if (result.status === 200) {
-        const voted = !!result.data?.voted
-        const votes_count = Number(result.data?.votes_count || 0)
-        setIdeas(prev => prev.map(it => it.id === ideaId ? { ...it, votes_count } : it))
-        setMyVotes(prev => { const s = new Set(prev || []); voted ? s.add(ideaId) : s.delete(ideaId); return Array.from(s) })
-        toast.success(result.message || (voted ? 'Voted' : 'Vote removed'))
-      } else toast.error(result.message || 'Vote failed')
-    } catch (e) { console.log(e); toast.error('Server error voting') }
-  }
+        const voted = !!result.data?.voted;
+        const votes_count = Number(result.data?.votes_count || 0);
+        setIdeas((prev) =>
+          prev.map((it) => (it.id === ideaId ? { ...it, votes_count } : it)),
+        );
+        setMyVotes((prev) => {
+          const s = new Set(prev || []);
+          voted ? s.add(ideaId) : s.delete(ideaId);
+          return Array.from(s);
+        });
+        toast.success(result.message || (voted ? "Voted" : "Vote removed"));
+      } else toast.error(result.message || "Vote failed");
+    } catch (e) {
+      console.log(e);
+      toast.error("Server error voting");
+    }
+  };
 
   const selectIdea = async (ideaId) => {
-    if (!isMentorRole) return
+    if (!isMentorRole) return;
     try {
       const res = await fetch(`${apiUrl}/ideas/${ideaId}/select`, {
-        method: 'POST',
-        headers: { Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      })
-      const result = await res.json()
-      if (result.status === 200) { toast.success('Idea selected for building'); setRefreshKey(k => k + 1) }
-      else toast.error(result.message || 'Select failed')
-    } catch (e) { console.log(e); toast.error('Server error selecting idea') }
-  }
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const result = await res.json();
+      if (result.status === 200) {
+        toast.success("Idea selected for building");
+        setRefreshKey((k) => k + 1);
+      } else toast.error(result.message || "Select failed");
+    } catch (e) {
+      console.log(e);
+      toast.error("Server error selecting idea");
+    }
+  };
 
-  const statusClass = (s) => s === 'open' ? 'open' : s === 'building' ? 'building' : 'closed'
+  const statusClass = (s) =>
+    s === "open" ? "open" : s === "building" ? "building" : "closed";
 
   return (
     <Layout>
       <style>{css}</style>
-      <div className='pd-blob-wrap'>
-        <div className='pd-blob pd-blob-1' /><div className='pd-blob pd-blob-2' /><div className='pd-blob pd-blob-3' />
+      <div className="pd-blob-wrap">
+        <div className="pd-blob pd-blob-1" />
+        <div className="pd-blob pd-blob-2" />
+        <div className="pd-blob pd-blob-3" />
       </div>
 
-      <div className='pd-root'>
-        <div className='container pd-inner'>
-
+      <div className="pd-root">
+        <div className="container pd-inner">
           {/* Hero */}
-          <div className='pd-hero'>
-            <div className='pd-hero-deco d1' /><div className='pd-hero-deco d2' />
-            <div className='pd-hero-left'>
-              <div className='pd-hero-title'>💡 Problem Details</div>
-              <div className='pd-hero-sub'>Review the problem, vote on ideas, and propose your own.</div>
+          <div className="pd-hero">
+            <div className="pd-hero-deco d1" />
+            <div className="pd-hero-deco d2" />
+            <div className="pd-hero-left">
+              <div className="pd-hero-title">💡 Problem Details</div>
+              <div className="pd-hero-sub">
+                Review the problem, vote on ideas, and propose your own.
+              </div>
             </div>
-            <Link to='/account/innovation' className='pd-back-btn'>← Back to Hub</Link>
+            <Link to="/account/innovation" className="pd-back-btn">
+              ← Back to Hub
+            </Link>
           </div>
 
           {loading ? (
             <>
-              <div className='pd-skeleton' />
-              <div className='pd-skeleton' style={{ height: 300 }} />
+              <div className="pd-skeleton" />
+              <div className="pd-skeleton" style={{ height: 300 }} />
             </>
           ) : !problem ? (
-            <div className='alert alert-danger' style={{ borderRadius: 16 }}>Problem not found.</div>
+            <div className="alert alert-danger" style={{ borderRadius: 16 }}>
+              Problem not found.
+            </div>
           ) : (
             <>
               {/* Problem card */}
-              <div className='pd-problem-card'>
-                <div className='pd-problem-top'>
-                  <span className='pd-cat-pill'>{problem.category || 'General'}</span>
-                  <span className={`pd-status-pill ${statusClass(problem.status)}`}>{problem.status}</span>
+              <div className="pd-problem-card">
+                <div className="pd-problem-top">
+                  <span className="pd-cat-pill">
+                    {problem.category || "General"}
+                  </span>
+                  <span
+                    className={`pd-status-pill ${statusClass(problem.status)}`}
+                  >
+                    {problem.status}
+                  </span>
                 </div>
-                <h2 className='pd-problem-title'>{problem.title}</h2>
-                <p className='pd-problem-desc'>{problem.description}</p>
-                <div className='pd-problem-author'>Posted by <b>{problem.user?.name || 'Unknown'}</b></div>
+                <h2 className="pd-problem-title">{problem.title}</h2>
+                <p className="pd-problem-desc">{problem.description}</p>
+                <div className="pd-problem-author">
+                  Posted by <b>{problem.user?.name || "Unknown"}</b>
+                </div>
               </div>
 
-              <div className='row g-3'>
-
+              <div className="row g-3">
                 {/* Ideas list */}
-                <div className='col-lg-7'>
-                  <div className='pd-card'>
-                    <div className='pd-card-title'>
-                      <span className='pd-dot' style={{ background: 'var(--blue)' }} />
+                <div className="col-lg-7">
+                  <div className="pd-card">
+                    <div className="pd-card-title">
+                      <span
+                        className="pd-dot"
+                        style={{ background: "var(--blue)" }}
+                      />
                       Ideas
-                      <span className='pd-count-chip'>{ideas.length}</span>
+                      <span className="pd-count-chip">{ideas.length}</span>
                     </div>
 
                     {ideas.length === 0 ? (
-                      <div className='pd-empty'>💬 No ideas yet. Be the first to propose one →</div>
+                      <div className="pd-empty">
+                        💬 No ideas yet. Be the first to propose one →
+                      </div>
                     ) : (
                       ideas.map((idea, idx) => {
-                        const voted = votedSet.has(idea.id)
+                        const voted = votedSet.has(idea.id);
                         return (
                           <div
                             key={idea.id}
-                            className={`pd-idea${idea.is_selected ? ' selected' : ''}`}
+                            className={`pd-idea${idea.is_selected ? " selected" : ""}`}
                             style={{ animationDelay: `${idx * 0.05}s` }}
                           >
-                            <div className='pd-idea-top'>
+                            <div className="pd-idea-top">
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div className='pd-idea-title'>{idea.title}</div>
-                                <div className='pd-idea-author'>By {idea.user?.name || 'Unknown'}</div>
+                                <div className="pd-idea-title">
+                                  {idea.title}
+                                </div>
+                                <div className="pd-idea-author">
+                                  By {idea.user?.name || "Unknown"}
+                                </div>
                               </div>
-                              <div className='pd-idea-actions'>
+                              <div className="pd-idea-actions">
                                 <button
-                                  className={`pd-vote-btn ${voted ? 'voted' : 'unvoted'}`}
+                                  className={`pd-vote-btn ${voted ? "voted" : "unvoted"}`}
                                   onClick={() => toggleVote(idea.id)}
                                 >
-                                  {voted ? '✓' : '↑'} {idea.votes_count}
+                                  {voted ? "✓" : "↑"} {idea.votes_count}
                                 </button>
                                 {idea.is_selected == 1 && (
-                                  <button className='pd-join-btn' onClick={() => joinTeam(idea.id)} disabled={joining}>
-                                    {joining ? 'Joining…' : '+ Join Team'}
+                                  <button
+                                    className="pd-join-btn"
+                                    onClick={() => joinTeam(idea.id)}
+                                    disabled={joining}
+                                  >
+                                    {joining ? "Joining…" : "+ Join Team"}
                                   </button>
                                 )}
                                 {isMentorRole && !idea.is_selected && (
-                                  <button className='pd-select-btn' onClick={() => selectIdea(idea.id)}>Select</button>
+                                  <button
+                                    className="pd-select-btn"
+                                    onClick={() => selectIdea(idea.id)}
+                                  >
+                                    Select
+                                  </button>
                                 )}
                               </div>
                             </div>
-                            <div className='pd-idea-desc'>{idea.description}</div>
+                            <div className="pd-idea-desc">
+                              {idea.description}
+                            </div>
                           </div>
-                        )
+                        );
                       })
                     )}
                   </div>
                 </div>
 
                 {/* Propose idea form */}
-                <div className='col-lg-5'>
-                  <div className='pd-card'>
-                    <div className='pd-card-title'>
-                      <span className='pd-dot' style={{ background: 'var(--purple)' }} />
+                <div className="col-lg-5">
+                  <div className="pd-card">
+                    <div className="pd-card-title">
+                      <span
+                        className="pd-dot"
+                        style={{ background: "var(--purple)" }}
+                      />
                       Propose an Idea
                     </div>
 
-                    <div className='pd-field'>
+                    <div className="pd-field">
                       <label>Idea Title</label>
                       <input
                         value={ideaForm.title}
-                        onChange={e => setIdeaForm(p => ({ ...p, title: e.target.value }))}
-                        placeholder='Example: QR code attendance app'
+                        onChange={(e) =>
+                          setIdeaForm((p) => ({ ...p, title: e.target.value }))
+                        }
+                        placeholder="Example: QR code attendance app"
                       />
                     </div>
-                    <div className='pd-field'>
+                    <div className="pd-field">
                       <label>Description</label>
                       <textarea
                         rows={5}
                         value={ideaForm.description}
-                        onChange={e => setIdeaForm(p => ({ ...p, description: e.target.value }))}
+                        onChange={(e) =>
+                          setIdeaForm((p) => ({
+                            ...p,
+                            description: e.target.value,
+                          }))
+                        }
                         placeholder="Explain how it works, who benefits, and why it's good."
                       />
                     </div>
-                    <button className='pd-submit-btn' disabled={submittingIdea} onClick={addIdea}>
-                      {submittingIdea ? 'Submitting…' : '→ Submit Idea'}
+                    <button
+                      className="pd-submit-btn"
+                      disabled={submittingIdea}
+                      onClick={addIdea}
+                    >
+                      {submittingIdea ? "Submitting…" : "→ Submit Idea"}
                     </button>
 
-                    <div className='pd-tip'>
-                      <b>Tip:</b> The best ideas are simple + measurable.<br />
-                      Example: "Reduce attendance time from 10 minutes to 30 seconds."
+                    <div className="pd-tip">
+                      <b>Tip:</b> The best ideas are simple + measurable.
+                      <br />
+                      Example: "Reduce attendance time from 10 minutes to 30
+                      seconds."
                     </div>
 
                     {isMentorRole && (
-                      <div className='pd-mentor-banner'>
-                        <b>Mentor Mode:</b> You can select one idea to move this problem into <b>Building</b> phase.
+                      <div className="pd-mentor-banner">
+                        <b>Mentor Mode:</b> You can select one idea to move this
+                        problem into <b>Building</b> phase.
                       </div>
                     )}
                   </div>
                 </div>
-
               </div>
             </>
           )}
         </div>
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default ProblemDetails
+export default ProblemDetails;

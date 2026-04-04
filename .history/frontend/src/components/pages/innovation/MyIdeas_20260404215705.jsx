@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react'
-import Layout from '../../common/Layout'
-import { Link } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { apiUrl, token as configToken } from '../../common/Config'
-import { AuthContext } from '../../context/Auth'
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import Layout from "../../common/Layout";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { apiUrl, getToken as configToken } from "../../common/Config";
+import { AuthContext } from "../../context/Auth";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -183,91 +183,131 @@ const css = `
   @keyframes mi-up { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
 
   @media (max-width: 600px) { .mi-hero { flex-direction: column; } .mi-grid { grid-template-columns: 1fr; } }
-`
+`;
 
 const MyIdeas = () => {
-  const { user } = useContext(AuthContext)
-  const authToken = useMemo(() => user?.token || user?.user?.token || configToken, [user])
+  const { user } = useContext(AuthContext);
+  const authToken = useMemo(
+    () => user?.token || user?.user?.token || configToken,
+    [user],
+  );
 
-  const [loading, setLoading] = useState(true)
-  const [items, setItems] = useState([])
-  const [meta, setMeta] = useState(null)
+  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState(null);
 
   const fetchMyIdeas = async (page = 1) => {
     try {
-      setLoading(true)
+      setLoading(true);
       const res = await fetch(`${apiUrl}/innovation/my-ideas?page=${page}`, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      })
-      const result = await res.json()
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const result = await res.json();
       if (result.status === 200) {
-        setItems(result.data?.data || [])
-        setMeta({ current_page: result.data?.current_page || 1, last_page: result.data?.last_page || 1, total: result.data?.total || 0 })
-      } else toast.error(result.message || 'Failed to load my ideas')
+        setItems(result.data?.data || []);
+        setMeta({
+          current_page: result.data?.current_page || 1,
+          last_page: result.data?.last_page || 1,
+          total: result.data?.total || 0,
+        });
+      } else toast.error(result.message || "Failed to load my ideas");
     } catch (e) {
-      console.log(e); toast.error('Server error loading my ideas')
-    } finally { setLoading(false) }
-  }
+      console.log(e);
+      toast.error("Server error loading my ideas");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => { if (authToken) fetchMyIdeas(1) }, [authToken])
+  useEffect(() => {
+    if (authToken) fetchMyIdeas(1);
+  }, [authToken]);
 
   return (
     <Layout>
       <style>{css}</style>
-      <div className='mi-blob-wrap'>
-        <div className='mi-blob mi-blob-1' /><div className='mi-blob mi-blob-2' /><div className='mi-blob mi-blob-3' />
+      <div className="mi-blob-wrap">
+        <div className="mi-blob mi-blob-1" />
+        <div className="mi-blob mi-blob-2" />
+        <div className="mi-blob mi-blob-3" />
       </div>
 
-      <div className='mi-root'>
-        <div className='container mi-inner'>
-
+      <div className="mi-root">
+        <div className="container mi-inner">
           {/* Hero */}
-          <div className='mi-hero'>
-            <div className='mi-hero-deco d1' /><div className='mi-hero-deco d2' />
-            <div className='mi-hero-left'>
-              <div className='mi-hero-title'>🧠 My Ideas</div>
-              <div className='mi-hero-sub'>Ideas you proposed across all problems.</div>
+          <div className="mi-hero">
+            <div className="mi-hero-deco d1" />
+            <div className="mi-hero-deco d2" />
+            <div className="mi-hero-left">
+              <div className="mi-hero-title">🧠 My Ideas</div>
+              <div className="mi-hero-sub">
+                Ideas you proposed across all problems.
+              </div>
             </div>
-            <Link to='/account/innovation' className='mi-back-btn'>← Back to Hub</Link>
+            <Link to="/account/innovation" className="mi-back-btn">
+              ← Back to Hub
+            </Link>
           </div>
 
           {/* Content */}
           {loading ? (
-            <div className='mi-grid'>
-              {[1,2,3,4].map(i => <div key={i} className='mi-skeleton' />)}
+            <div className="mi-grid">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="mi-skeleton" />
+              ))}
             </div>
           ) : items.length === 0 ? (
-            <div className='mi-empty'>
-              <div style={{ fontSize: '2.5rem', opacity: 0.4 }}>🧠</div>
-              <p>You have not posted any ideas yet. Head to the Problem Hub and propose one!</p>
+            <div className="mi-empty">
+              <div style={{ fontSize: "2.5rem", opacity: 0.4 }}>🧠</div>
+              <p>
+                You have not posted any ideas yet. Head to the Problem Hub and
+                propose one!
+              </p>
             </div>
           ) : (
-            <div className='mi-grid'>
+            <div className="mi-grid">
               {items.map((idea, idx) => (
                 <div
-                  className={`mi-card${idea.is_selected ? ' is-selected' : ''}`}
+                  className={`mi-card${idea.is_selected ? " is-selected" : ""}`}
                   key={idea.id}
                   style={{ animationDelay: `${idx * 0.05}s` }}
                 >
-                  <div className='mi-card-top'>
-                    <span className='mi-cat-pill'>{idea.problem?.category || 'General'}</span>
-                    <span className={`mi-status-pill ${idea.is_selected ? 'selected' : 'proposed'}`}>
-                      {idea.is_selected ? '✓ Selected' : 'Proposed'}
+                  <div className="mi-card-top">
+                    <span className="mi-cat-pill">
+                      {idea.problem?.category || "General"}
+                    </span>
+                    <span
+                      className={`mi-status-pill ${idea.is_selected ? "selected" : "proposed"}`}
+                    >
+                      {idea.is_selected ? "✓ Selected" : "Proposed"}
                     </span>
                   </div>
 
-                  <div className='mi-idea-title'>{idea.title}</div>
-                  <div className='mi-problem-ref'>Problem: <b>{idea.problem?.title || '—'}</b></div>
-                  <div className='mi-desc'>
-                    {String(idea.description || '').slice(0, 120)}{String(idea.description || '').length > 120 ? '…' : ''}
+                  <div className="mi-idea-title">{idea.title}</div>
+                  <div className="mi-problem-ref">
+                    Problem: <b>{idea.problem?.title || "—"}</b>
+                  </div>
+                  <div className="mi-desc">
+                    {String(idea.description || "").slice(0, 120)}
+                    {String(idea.description || "").length > 120 ? "…" : ""}
                   </div>
 
-                  <div className='mi-card-footer'>
-                    <div className='mi-meta'>
-                      <span className='mi-meta-chip votes'>↑ {idea.votes_count ?? 0} votes</span>
-                      <span className='mi-meta-chip'>Problem: {idea.problem?.status || '—'}</span>
+                  <div className="mi-card-footer">
+                    <div className="mi-meta">
+                      <span className="mi-meta-chip votes">
+                        ↑ {idea.votes_count ?? 0} votes
+                      </span>
+                      <span className="mi-meta-chip">
+                        Problem: {idea.problem?.status || "—"}
+                      </span>
                     </div>
-                    <Link to={`/account/innovation/problem/${idea.problem_id}`} className='mi-open-btn'>
+                    <Link
+                      to={`/account/innovation/problem/${idea.problem_id}`}
+                      className="mi-open-btn"
+                    >
                       Open →
                     </Link>
                   </div>
@@ -278,17 +318,30 @@ const MyIdeas = () => {
 
           {/* Pagination */}
           {meta && meta.last_page > 1 && (
-            <div className='mi-pagination'>
-              <button className='mi-page-btn' disabled={meta.current_page <= 1} onClick={() => fetchMyIdeas(meta.current_page - 1)}>← Prev</button>
-              <span className='mi-page-info'>Page {meta.current_page} of {meta.last_page}</span>
-              <button className='mi-page-btn' disabled={meta.current_page >= meta.last_page} onClick={() => fetchMyIdeas(meta.current_page + 1)}>Next →</button>
+            <div className="mi-pagination">
+              <button
+                className="mi-page-btn"
+                disabled={meta.current_page <= 1}
+                onClick={() => fetchMyIdeas(meta.current_page - 1)}
+              >
+                ← Prev
+              </button>
+              <span className="mi-page-info">
+                Page {meta.current_page} of {meta.last_page}
+              </span>
+              <button
+                className="mi-page-btn"
+                disabled={meta.current_page >= meta.last_page}
+                onClick={() => fetchMyIdeas(meta.current_page + 1)}
+              >
+                Next →
+              </button>
             </div>
           )}
-
         </div>
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default MyIdeas
+export default MyIdeas;

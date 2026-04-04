@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useState } from 'react'
-import Layout from '../../common/Layout'
-import { Link } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { apiUrl } from '../../common/Config'
-import { AuthContext } from '../../context/Auth'
+import React, { useContext, useEffect, useState } from "react";
+import Layout from "../../common/Layout";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { apiUrl } from "../../common/Config";
+import { AuthContext } from "../../context/Auth";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -189,107 +189,163 @@ const css = `
   @keyframes sc-up { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
 
   @media (max-width: 600px) { .sc-hero { flex-direction: column; } .sc-grid { grid-template-columns: 1fr; } }
-`
+`;
 
 const Showcase = () => {
-  const { user } = useContext(AuthContext)
-  const authToken = user?.token || user?.user?.token
+  const { user } = useContext(AuthContext);
+  const authToken = user?.token || user?.user?.token;
 
-  const [items, setItems] = useState([])
-  const [meta, setMeta] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const fetchShowcases = async (page = 1) => {
     try {
-      setLoading(true)
+      setLoading(true);
       const res = await fetch(`${apiUrl}/showcases?page=${page}`, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      })
-      const result = await res.json()
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const result = await res.json();
       if (result.status === 200) {
-        setItems(result.data.data || [])
-        setMeta({ current_page: result.data.current_page, last_page: result.data.last_page })
-      } else toast.error('Failed to load showcase')
+        setItems(result.data.data || []);
+        setMeta({
+          current_page: result.data.current_page,
+          last_page: result.data.last_page,
+        });
+      } else toast.error("Failed to load showcase");
     } catch (e) {
-      console.log(e); toast.error('Server error loading showcase')
-    } finally { setLoading(false) }
-  }
+      console.log(e);
+      toast.error("Server error loading showcase");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => { if (authToken) fetchShowcases(1) }, [authToken])
+  useEffect(() => {
+    if (authToken) fetchShowcases(1);
+  }, [authToken]);
 
   return (
     <Layout>
       <style>{css}</style>
-      <div className='sc-blob-wrap'>
-        <div className='sc-blob sc-blob-1' /><div className='sc-blob sc-blob-2' /><div className='sc-blob sc-blob-3' />
+      <div className="sc-blob-wrap">
+        <div className="sc-blob sc-blob-1" />
+        <div className="sc-blob sc-blob-2" />
+        <div className="sc-blob sc-blob-3" />
       </div>
 
-      <div className='sc-root'>
-        <div className='container sc-inner'>
-
+      <div className="sc-root">
+        <div className="container sc-inner">
           {/* Hero */}
-          <div className='sc-hero'>
-            <div className='sc-hero-deco d1' /><div className='sc-hero-deco d2' />
-            <div className='sc-hero-left'>
-              <div className='sc-hero-title'>🏆 Showcase</div>
-              <div className='sc-hero-sub'>Completed solutions validated by admin &amp; instructors.</div>
+          <div className="sc-hero">
+            <div className="sc-hero-deco d1" />
+            <div className="sc-hero-deco d2" />
+            <div className="sc-hero-left">
+              <div className="sc-hero-title">🏆 Showcase</div>
+              <div className="sc-hero-sub">
+                Completed solutions validated by admin &amp; instructors.
+              </div>
             </div>
-            <Link to='/account/innovation' className='sc-back-btn'>← Back to Hub</Link>
+            <Link to="/account/innovation" className="sc-back-btn">
+              ← Back to Hub
+            </Link>
           </div>
 
           {/* Content */}
           {loading ? (
-            <div className='sc-grid'>
-              {[1,2,3,4,5,6].map(i => <div key={i} className='sc-skeleton' />)}
+            <div className="sc-grid">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="sc-skeleton" />
+              ))}
             </div>
           ) : items.length === 0 ? (
-            <div className='sc-empty'>
-              <div style={{ fontSize: '2.5rem', opacity: 0.4 }}>🏆</div>
-              <p>No showcase items yet. Complete a project to be featured here!</p>
+            <div className="sc-empty">
+              <div style={{ fontSize: "2.5rem", opacity: 0.4 }}>🏆</div>
+              <p>
+                No showcase items yet. Complete a project to be featured here!
+              </p>
             </div>
           ) : (
-            <div className='sc-grid'>
+            <div className="sc-grid">
               {items.map((s, idx) => {
-                const cover = s.cover_image_resolved || s.cover_image || ''
+                const cover = s.cover_image_resolved || s.cover_image || "";
                 return (
-                  <div className='sc-card' key={s.id} style={{ animationDelay: `${idx * 0.05}s` }}>
-                    <div className='sc-cover'>
+                  <div
+                    className="sc-card"
+                    key={s.id}
+                    style={{ animationDelay: `${idx * 0.05}s` }}
+                  >
+                    <div className="sc-cover">
                       {cover ? (
-                        <img src={cover} alt='cover' onError={e => { e.currentTarget.style.display = 'none' }} />
+                        <img
+                          src={cover}
+                          alt="cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
                       ) : (
-                        <div className='sc-cover-fallback'>🚀</div>
+                        <div className="sc-cover-fallback">🚀</div>
                       )}
-                      <span className='sc-done-badge'>✓ Completed</span>
-                      {s.score ? <span className='sc-score-float'>{s.score}/10</span> : null}
+                      <span className="sc-done-badge">✓ Completed</span>
+                      {s.score ? (
+                        <span className="sc-score-float">{s.score}/10</span>
+                      ) : null}
                     </div>
 
-                    <div className='sc-card-body'>
-                      <div className='sc-idea-title'>{s.idea?.title}</div>
-                      <div className='sc-problem-ref'>Problem: <b>{s.idea?.problem?.title || '—'}</b></div>
+                    <div className="sc-card-body">
+                      <div className="sc-idea-title">{s.idea?.title}</div>
+                      <div className="sc-problem-ref">
+                        Problem: <b>{s.idea?.problem?.title || "—"}</b>
+                      </div>
                       {s.summary && (
-                        <div className='sc-summary'>{String(s.summary).slice(0, 90)}{String(s.summary).length > 90 ? '…' : ''}</div>
+                        <div className="sc-summary">
+                          {String(s.summary).slice(0, 90)}
+                          {String(s.summary).length > 90 ? "…" : ""}
+                        </div>
                       )}
-                      <Link to={`/account/innovation/showcase/${s.id}`} className='sc-view-btn'>View →</Link>
+                      <Link
+                        to={`/account/innovation/showcase/${s.id}`}
+                        className="sc-view-btn"
+                      >
+                        View →
+                      </Link>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           )}
 
           {/* Pagination */}
           {meta && meta.last_page > 1 && (
-            <div className='sc-pagination'>
-              <button className='sc-page-btn' disabled={meta.current_page <= 1} onClick={() => fetchShowcases(meta.current_page - 1)}>← Prev</button>
-              <span className='sc-page-info'>Page {meta.current_page} of {meta.last_page}</span>
-              <button className='sc-page-btn' disabled={meta.current_page >= meta.last_page} onClick={() => fetchShowcases(meta.current_page + 1)}>Next →</button>
+            <div className="sc-pagination">
+              <button
+                className="sc-page-btn"
+                disabled={meta.current_page <= 1}
+                onClick={() => fetchShowcases(meta.current_page - 1)}
+              >
+                ← Prev
+              </button>
+              <span className="sc-page-info">
+                Page {meta.current_page} of {meta.last_page}
+              </span>
+              <button
+                className="sc-page-btn"
+                disabled={meta.current_page >= meta.last_page}
+                onClick={() => fetchShowcases(meta.current_page + 1)}
+              >
+                Next →
+              </button>
             </div>
           )}
-
         </div>
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default Showcase
+export default Showcase;

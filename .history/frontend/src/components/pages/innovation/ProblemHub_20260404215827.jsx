@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react'
-import Layout from '../../common/Layout'
-import toast from 'react-hot-toast'
-import { apiUrl, token as configToken } from '../../common/Config'
-import { Link } from 'react-router-dom'
-import { AuthContext } from '../../context/Auth'
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import Layout from "../../common/Layout";
+import toast from "react-hot-toast";
+import { apiUrl, getToken as configToken } from "../../common/Config";
+import { Link } from "react-router-dom";
+import { AuthContext } from "../../context/Auth";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -268,135 +268,206 @@ const css = `
 
   @keyframes ph-up { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
   @media (max-width: 600px) { .ph-hero { flex-direction: column; } .ph-controls { flex-direction: column; } }
-`
+`;
 
 const ProblemHub = () => {
-  const { user } = useContext(AuthContext)
-  const authToken = useMemo(() => user?.token || user?.user?.token || configToken, [user])
+  const { user } = useContext(AuthContext);
+  const authToken = useMemo(
+    () => user?.token || user?.user?.token || configToken,
+    [user],
+  );
 
-  const [items, setItems] = useState([])
-  const [meta, setMeta] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('all')
-  const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: '', category: '', description: '' })
-  const [submitting, setSubmitting] = useState(false)
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({
+    title: "",
+    category: "",
+    description: "",
+  });
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchProblems = async (page = 1) => {
     try {
-      setLoading(true)
-      const qs = new URLSearchParams()
-      if (search.trim()) qs.set('search', search.trim())
-      if (category && category !== 'all') qs.set('category', category)
-      qs.set('page', String(page))
+      setLoading(true);
+      const qs = new URLSearchParams();
+      if (search.trim()) qs.set("search", search.trim());
+      if (category && category !== "all") qs.set("category", category);
+      qs.set("page", String(page));
       const res = await fetch(`${apiUrl}/problems?${qs.toString()}`, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      })
-      const result = await res.json()
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const result = await res.json();
       if (result.status === 200) {
-        setItems(result.data?.data || [])
-        setMeta({ current_page: result.data?.current_page || 1, last_page: result.data?.last_page || 1, total: result.data?.total || 0 })
-      } else toast.error(result.message || 'Failed to load problems')
+        setItems(result.data?.data || []);
+        setMeta({
+          current_page: result.data?.current_page || 1,
+          last_page: result.data?.last_page || 1,
+          total: result.data?.total || 0,
+        });
+      } else toast.error(result.message || "Failed to load problems");
     } catch (e) {
-      console.log(e); toast.error('Server error while loading problems')
-    } finally { setLoading(false) }
-  }
+      console.log(e);
+      toast.error("Server error while loading problems");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const submitProblem = async (e) => {
-    e.preventDefault()
-    if (!form.title.trim() || !form.description.trim()) { toast.error('Title and description are required'); return }
+    e.preventDefault();
+    if (!form.title.trim() || !form.description.trim()) {
+      toast.error("Title and description are required");
+      return;
+    }
     try {
-      setSubmitting(true)
+      setSubmitting(true);
       const res = await fetch(`${apiUrl}/problems`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-        body: JSON.stringify({ title: form.title, category: form.category, description: form.description }),
-      })
-      const result = await res.json()
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          title: form.title,
+          category: form.category,
+          description: form.description,
+        }),
+      });
+      const result = await res.json();
       if (result.status === 200) {
-        toast.success(result.message || 'Problem posted!')
-        setShowForm(false)
-        setForm({ title: '', category: '', description: '' })
-        fetchProblems(1)
-      } else if (result.status === 422) toast.error('Validation failed')
-      else toast.error(result.message || 'Something went wrong')
-    } catch (e) { console.log(e); toast.error('Server error while posting problem') }
-    finally { setSubmitting(false) }
-  }
+        toast.success(result.message || "Problem posted!");
+        setShowForm(false);
+        setForm({ title: "", category: "", description: "" });
+        fetchProblems(1);
+      } else if (result.status === 422) toast.error("Validation failed");
+      else toast.error(result.message || "Something went wrong");
+    } catch (e) {
+      console.log(e);
+      toast.error("Server error while posting problem");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-  useEffect(() => { if (authToken) fetchProblems(1) }, [authToken])
+  useEffect(() => {
+    if (authToken) fetchProblems(1);
+  }, [authToken]);
 
-  const onSearchKeyDown = (e) => { if (e.key === 'Enter') fetchProblems(1) }
+  const onSearchKeyDown = (e) => {
+    if (e.key === "Enter") fetchProblems(1);
+  };
 
-  const statusClass = (s) => s === 'open' ? 'open' : s === 'building' ? 'building' : 'closed'
+  const statusClass = (s) =>
+    s === "open" ? "open" : s === "building" ? "building" : "closed";
 
   return (
     <Layout>
       <style>{css}</style>
-      <div className='ph-blob-wrap'>
-        <div className='ph-blob ph-blob-1' /><div className='ph-blob ph-blob-2' /><div className='ph-blob ph-blob-3' />
+      <div className="ph-blob-wrap">
+        <div className="ph-blob ph-blob-1" />
+        <div className="ph-blob ph-blob-2" />
+        <div className="ph-blob ph-blob-3" />
       </div>
 
-      <div className='ph-root'>
-        <div className='container ph-inner'>
-
+      <div className="ph-root">
+        <div className="container ph-inner">
           {/* Hero */}
-          <div className='ph-hero'>
-            <div className='ph-hero-deco d1' /><div className='ph-hero-deco d2' />
-            <div className='ph-hero-left'>
-              <div className='ph-hero-title'>💡 Problem Hub</div>
-              <div className='ph-hero-sub'>Post real problems · Propose ideas · Build solutions.</div>
+          <div className="ph-hero">
+            <div className="ph-hero-deco d1" />
+            <div className="ph-hero-deco d2" />
+            <div className="ph-hero-left">
+              <div className="ph-hero-title">💡 Problem Hub</div>
+              <div className="ph-hero-sub">
+                Post real problems · Propose ideas · Build solutions.
+              </div>
             </div>
-            <button className='ph-post-btn' onClick={() => setShowForm(true)}>+ Post Problem</button>
+            <button className="ph-post-btn" onClick={() => setShowForm(true)}>
+              + Post Problem
+            </button>
           </div>
 
           {/* Controls */}
-          <div className='ph-controls'>
+          <div className="ph-controls">
             <input
-              className='ph-search'
-              placeholder='Search problems... (press Enter)'
+              className="ph-search"
+              placeholder="Search problems... (press Enter)"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               onKeyDown={onSearchKeyDown}
             />
-            <select className='ph-select' value={category} onChange={e => setCategory(e.target.value)}>
-              <option value='all'>All Categories</option>
-              <option value='AI / Automation'>AI / Automation</option>
-              <option value='Education'>Education</option>
-              <option value='Health'>Health</option>
-              <option value='Campus Life'>Campus Life</option>
-              <option value='Environment'>Environment</option>
+            <select
+              className="ph-select"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <option value="all">All Categories</option>
+              <option value="AI / Automation">AI / Automation</option>
+              <option value="Education">Education</option>
+              <option value="Health">Health</option>
+              <option value="Campus Life">Campus Life</option>
+              <option value="Environment">Environment</option>
             </select>
-            <button className='ph-filter-btn' onClick={() => fetchProblems(1)}>Filter</button>
-            {meta && <div className='ph-total'>Showing <b>{items.length}</b> of <b>{meta.total}</b> problems</div>}
+            <button className="ph-filter-btn" onClick={() => fetchProblems(1)}>
+              Filter
+            </button>
+            {meta && (
+              <div className="ph-total">
+                Showing <b>{items.length}</b> of <b>{meta.total}</b> problems
+              </div>
+            )}
           </div>
 
           {/* Content */}
           {loading ? (
-            <div className='ph-grid'>
-              {[1,2,3,4,5,6].map(i => <div key={i} className='ph-skeleton' />)}
+            <div className="ph-grid">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="ph-skeleton" />
+              ))}
             </div>
           ) : items.length === 0 ? (
-            <div className='ph-empty'>
-              <div style={{ fontSize: '2.5rem', opacity: 0.4 }}>💡</div>
+            <div className="ph-empty">
+              <div style={{ fontSize: "2.5rem", opacity: 0.4 }}>💡</div>
               <p>No problems found. Be the first to post one!</p>
             </div>
           ) : (
-            <div className='ph-grid'>
+            <div className="ph-grid">
               {items.map((p, idx) => (
-                <div className='ph-card' key={p.id} style={{ animationDelay: `${idx * 0.04}s` }}>
-                  <div className='ph-card-top'>
-                    <span className='ph-cat-pill'>{p.category || 'General'}</span>
-                    <span className={`ph-status-pill ${statusClass(p.status)}`}>{p.status}</span>
+                <div
+                  className="ph-card"
+                  key={p.id}
+                  style={{ animationDelay: `${idx * 0.04}s` }}
+                >
+                  <div className="ph-card-top">
+                    <span className="ph-cat-pill">
+                      {p.category || "General"}
+                    </span>
+                    <span className={`ph-status-pill ${statusClass(p.status)}`}>
+                      {p.status}
+                    </span>
                   </div>
-                  <h5 className='ph-card-title'>{p.title}</h5>
-                  <p className='ph-card-desc'>
-                    {String(p.description || '').slice(0, 120)}{String(p.description || '').length > 120 ? '…' : ''}
+                  <h5 className="ph-card-title">{p.title}</h5>
+                  <p className="ph-card-desc">
+                    {String(p.description || "").slice(0, 120)}
+                    {String(p.description || "").length > 120 ? "…" : ""}
                   </p>
-                  <div className='ph-card-footer'>
-                    <span className='ph-author'>by {p.user?.name || 'Unknown'}</span>
-                    <Link to={`/account/innovation/problem/${p.id}`} className='ph-view-btn'>View →</Link>
+                  <div className="ph-card-footer">
+                    <span className="ph-author">
+                      by {p.user?.name || "Unknown"}
+                    </span>
+                    <Link
+                      to={`/account/innovation/problem/${p.id}`}
+                      className="ph-view-btn"
+                    >
+                      View →
+                    </Link>
                   </div>
                 </div>
               ))}
@@ -405,10 +476,24 @@ const ProblemHub = () => {
 
           {/* Pagination */}
           {meta && meta.last_page > 1 && (
-            <div className='ph-pagination'>
-              <button className='ph-page-btn' disabled={meta.current_page <= 1} onClick={() => fetchProblems(meta.current_page - 1)}>← Prev</button>
-              <span className='ph-page-info'>Page {meta.current_page} of {meta.last_page}</span>
-              <button className='ph-page-btn' disabled={meta.current_page >= meta.last_page} onClick={() => fetchProblems(meta.current_page + 1)}>Next →</button>
+            <div className="ph-pagination">
+              <button
+                className="ph-page-btn"
+                disabled={meta.current_page <= 1}
+                onClick={() => fetchProblems(meta.current_page - 1)}
+              >
+                ← Prev
+              </button>
+              <span className="ph-page-info">
+                Page {meta.current_page} of {meta.last_page}
+              </span>
+              <button
+                className="ph-page-btn"
+                disabled={meta.current_page >= meta.last_page}
+                onClick={() => fetchProblems(meta.current_page + 1)}
+              >
+                Next →
+              </button>
             </div>
           )}
         </div>
@@ -416,47 +501,62 @@ const ProblemHub = () => {
 
       {/* Modal */}
       {showForm && (
-        <div className='ph-modal-overlay' onClick={() => setShowForm(false)}>
-          <div className='ph-modal' onClick={e => e.stopPropagation()}>
-            <div className='ph-modal-header'>
-              <h5 className='ph-modal-title'>💡 Post a Problem</h5>
-              <button className='ph-modal-close' onClick={() => setShowForm(false)}>✕</button>
+        <div className="ph-modal-overlay" onClick={() => setShowForm(false)}>
+          <div className="ph-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="ph-modal-header">
+              <h5 className="ph-modal-title">💡 Post a Problem</h5>
+              <button
+                className="ph-modal-close"
+                onClick={() => setShowForm(false)}
+              >
+                ✕
+              </button>
             </div>
-            <div className='ph-modal-body'>
-              <div className='ph-field'>
+            <div className="ph-modal-body">
+              <div className="ph-field">
                 <label>Title</label>
                 <input
                   value={form.title}
-                  onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-                  placeholder='Example: Manual attendance wastes class time'
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, title: e.target.value }))
+                  }
+                  placeholder="Example: Manual attendance wastes class time"
                 />
               </div>
-              <div className='ph-field'>
+              <div className="ph-field">
                 <label>Category</label>
                 <input
                   value={form.category}
-                  onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
-                  placeholder='Example: AI / Automation'
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, category: e.target.value }))
+                  }
+                  placeholder="Example: AI / Automation"
                 />
               </div>
-              <div className='ph-field'>
+              <div className="ph-field">
                 <label>Description</label>
                 <textarea
                   rows={5}
                   value={form.description}
-                  onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                  placeholder='Explain the problem in detail...'
+                  onChange={(e) =>
+                    setForm((p) => ({ ...p, description: e.target.value }))
+                  }
+                  placeholder="Explain the problem in detail..."
                 />
               </div>
-              <button className='ph-submit-btn' disabled={submitting} onClick={submitProblem}>
-                {submitting ? 'Posting...' : '→ Post Problem'}
+              <button
+                className="ph-submit-btn"
+                disabled={submitting}
+                onClick={submitProblem}
+              >
+                {submitting ? "Posting..." : "→ Post Problem"}
               </button>
             </div>
           </div>
         </div>
       )}
     </Layout>
-  )
-}
+  );
+};
 
-export default ProblemHub
+export default ProblemHub;

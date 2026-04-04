@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react'
-import Layout from '../../common/Layout'
-import { Link, useParams } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { apiUrl } from '../../common/Config'
-import { AuthContext } from '../../context/Auth'
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import Layout from "../../common/Layout";
+import { Link, useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import { apiUrl } from "../../common/Config";
+import { AuthContext } from "../../context/Auth";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -245,134 +245,228 @@ const css = `
   @keyframes shimmer { 0%{background-position:-700px 0;} 100%{background-position:700px 0;} }
   @keyframes sd-up { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
   @media (max-width: 600px) { .sd-hero { flex-direction: column; } }
-`
+`;
 
 const proofIcon = (type) => {
-  if (type === 'github') return '💻'
-  if (type === 'demo') return '▶'
-  if (type === 'pdf') return '📄'
-  if (type === 'image') return '🖼'
-  return '🔗'
-}
+  if (type === "github") return "💻";
+  if (type === "demo") return "▶";
+  if (type === "pdf") return "📄";
+  if (type === "image") return "🖼";
+  return "🔗";
+};
 
 const ShowcaseDetails = () => {
-  const { id } = useParams()
-  const { user } = useContext(AuthContext)
+  const { id } = useParams();
+  const { user } = useContext(AuthContext);
 
-  const role = (user?.user?.role || '').toString().toLowerCase().trim()
-  const isStaff = useMemo(() => ['admin', 'instructor'].includes(role), [role])
-  const authToken = user?.token || user?.user?.token
+  const role = (user?.user?.role || "").toString().toLowerCase().trim();
+  const isStaff = useMemo(() => ["admin", "instructor"].includes(role), [role]);
+  const authToken = user?.token || user?.user?.token;
 
-  const [loading, setLoading] = useState(true)
-  const [item, setItem] = useState(null)
+  const [loading, setLoading] = useState(true);
+  const [item, setItem] = useState(null);
 
   const fetchDetails = async () => {
     try {
-      setLoading(true)
+      setLoading(true);
       const res = await fetch(`${apiUrl}/showcases/${id}`, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      })
-      const result = await res.json()
-      if (result.status === 200) setItem(result.data)
-      else { toast.error(result.message || 'Failed to load showcase'); setItem(null) }
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const result = await res.json();
+      if (result.status === 200) setItem(result.data);
+      else {
+        toast.error(result.message || "Failed to load showcase");
+        setItem(null);
+      }
     } catch (e) {
-      console.log(e); toast.error('Server error loading showcase'); setItem(null)
-    } finally { setLoading(false) }
-  }
+      console.log(e);
+      toast.error("Server error loading showcase");
+      setItem(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => { if (authToken && id) fetchDetails() }, [authToken, id])
+  useEffect(() => {
+    if (authToken && id) fetchDetails();
+  }, [authToken, id]);
 
-  const cover = item?.cover_image_resolved || item?.cover_image ||
-    item?.idea?.updates?.find(u => u.proof_type === 'image' && u.proof_url)?.proof_url || ''
+  const cover =
+    item?.cover_image_resolved ||
+    item?.cover_image ||
+    item?.idea?.updates?.find((u) => u.proof_type === "image" && u.proof_url)
+      ?.proof_url ||
+    "";
 
-  const idea = item?.idea
-  const problem = idea?.problem
-  const owner = idea?.user
+  const idea = item?.idea;
+  const problem = idea?.problem;
+  const owner = idea?.user;
 
   const proofLinks = useMemo(() => {
     return (idea?.updates || [])
-      .filter(u => u?.proof_url)
-      .map(u => ({ id: u.id, type: u.proof_type, url: u.proof_url }))
-  }, [idea])
+      .filter((u) => u?.proof_url)
+      .map((u) => ({ id: u.id, type: u.proof_type, url: u.proof_url }));
+  }, [idea]);
 
   return (
     <Layout>
       <style>{css}</style>
-      <div className='sd-blob-wrap'>
-        <div className='sd-blob sd-blob-1' /><div className='sd-blob sd-blob-2' /><div className='sd-blob sd-blob-3' />
+      <div className="sd-blob-wrap">
+        <div className="sd-blob sd-blob-1" />
+        <div className="sd-blob sd-blob-2" />
+        <div className="sd-blob sd-blob-3" />
       </div>
 
-      <div className='sd-root'>
-        <div className='container sd-inner'>
-
+      <div className="sd-root">
+        <div className="container sd-inner">
           {/* Hero */}
-          <div className='sd-hero'>
-            <div className='sd-hero-deco d1' /><div className='sd-hero-deco d2' />
-            <div className='sd-hero-left'>
-              <div className='sd-hero-title'>🏆 Showcase Details</div>
-              <div className='sd-hero-sub'>A completed, validated innovation project.</div>
+          <div className="sd-hero">
+            <div className="sd-hero-deco d1" />
+            <div className="sd-hero-deco d2" />
+            <div className="sd-hero-left">
+              <div className="sd-hero-title">🏆 Showcase Details</div>
+              <div className="sd-hero-sub">
+                A completed, validated innovation project.
+              </div>
             </div>
-            <div className='sd-hero-right'>
-              {item?.score ? <span className='sd-score-pill'>{item.score}/10</span> : null}
-              <span className='sd-done-pill'>✓ Completed</span>
-              <Link to='/account/innovation/showcase' className='sd-back-btn'>← Showcase</Link>
+            <div className="sd-hero-right">
+              {item?.score ? (
+                <span className="sd-score-pill">{item.score}/10</span>
+              ) : null}
+              <span className="sd-done-pill">✓ Completed</span>
+              <Link to="/account/innovation/showcase" className="sd-back-btn">
+                ← Showcase
+              </Link>
             </div>
           </div>
 
           {loading ? (
             <>
-              <div className='sd-skeleton' style={{ height: 300 }} />
-              <div className='sd-skeleton' style={{ height: 200 }} />
+              <div className="sd-skeleton" style={{ height: 300 }} />
+              <div className="sd-skeleton" style={{ height: 200 }} />
             </>
           ) : !item ? (
-            <div className='alert alert-danger' style={{ borderRadius: 16 }}>Showcase not found.</div>
+            <div className="alert alert-danger" style={{ borderRadius: 16 }}>
+              Showcase not found.
+            </div>
           ) : (
-            <div className='row g-3'>
-
+            <div className="row g-3">
               {/* LEFT */}
-              <div className='col-lg-8'>
-
+              <div className="col-lg-8">
                 {/* Main card */}
-                <div className='sd-card'>
+                <div className="sd-card">
                   {cover && (
-                    <img src={cover} alt='cover' className='sd-cover'
-                      onError={e => e.currentTarget.style.display = 'none'} />
+                    <img
+                      src={cover}
+                      alt="cover"
+                      className="sd-cover"
+                      onError={(e) => (e.currentTarget.style.display = "none")}
+                    />
                   )}
-                  <div className='sd-card-body'>
-                    <div className='sd-card-top'>
-                      <span className='sd-cat-pill'>{problem?.category || 'General'}</span>
-                      <span className='sd-owner'>By <b>{owner?.name || 'Unknown'}</b></span>
+                  <div className="sd-card-body">
+                    <div className="sd-card-top">
+                      <span className="sd-cat-pill">
+                        {problem?.category || "General"}
+                      </span>
+                      <span className="sd-owner">
+                        By <b>{owner?.name || "Unknown"}</b>
+                      </span>
                     </div>
 
-                    <h2 className='sd-idea-title'>{idea?.title}</h2>
-                    <div className='sd-problem-ref'>Problem: <b>{problem?.title}</b></div>
+                    <h2 className="sd-idea-title">{idea?.title}</h2>
+                    <div className="sd-problem-ref">
+                      Problem: <b>{problem?.title}</b>
+                    </div>
 
                     {item?.tech_stack && (
-                      <div className='sd-tech-chip'>🧩 {item.tech_stack}</div>
+                      <div className="sd-tech-chip">🧩 {item.tech_stack}</div>
                     )}
 
-                    <hr className='sd-divider' />
-                    <div className='sd-section-title'><span className='sd-dot' style={{ background: 'var(--blue)' }} />Summary</div>
-                    <div className='sd-summary-text'>{item?.summary || 'No summary provided.'}</div>
+                    <hr className="sd-divider" />
+                    <div className="sd-section-title">
+                      <span
+                        className="sd-dot"
+                        style={{ background: "var(--blue)" }}
+                      />
+                      Summary
+                    </div>
+                    <div className="sd-summary-text">
+                      {item?.summary || "No summary provided."}
+                    </div>
 
-                    <hr className='sd-divider' />
-                    <div className='sd-section-title'><span className='sd-dot' style={{ background: 'var(--purple)' }} />Project Links</div>
-                    <div className='sd-links'>
-                      {item?.repo_url && <a className='sd-link-btn repo' href={item.repo_url} target='_blank' rel='noreferrer'>💻 Repo</a>}
-                      {item?.demo_url && <a className='sd-link-btn demo' href={item.demo_url} target='_blank' rel='noreferrer'>▶ Demo</a>}
-                      {item?.report_url && <a className='sd-link-btn report' href={item.report_url} target='_blank' rel='noreferrer'>📄 Report</a>}
-                      {!item?.repo_url && !item?.demo_url && !item?.report_url && (
-                        <span className='sd-no-links'>No main links provided.</span>
+                    <hr className="sd-divider" />
+                    <div className="sd-section-title">
+                      <span
+                        className="sd-dot"
+                        style={{ background: "var(--purple)" }}
+                      />
+                      Project Links
+                    </div>
+                    <div className="sd-links">
+                      {item?.repo_url && (
+                        <a
+                          className="sd-link-btn repo"
+                          href={item.repo_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          💻 Repo
+                        </a>
                       )}
+                      {item?.demo_url && (
+                        <a
+                          className="sd-link-btn demo"
+                          href={item.demo_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          ▶ Demo
+                        </a>
+                      )}
+                      {item?.report_url && (
+                        <a
+                          className="sd-link-btn report"
+                          href={item.report_url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          📄 Report
+                        </a>
+                      )}
+                      {!item?.repo_url &&
+                        !item?.demo_url &&
+                        !item?.report_url && (
+                          <span className="sd-no-links">
+                            No main links provided.
+                          </span>
+                        )}
                     </div>
 
                     {proofLinks.length > 0 && (
                       <>
-                        <hr className='sd-divider' />
-                        <div className='sd-section-title'><span className='sd-dot' style={{ background: 'var(--green)' }} />Build Log Proofs</div>
-                        {proofLinks.slice(0, 8).map(p => (
-                          <a key={p.id} href={p.url} target='_blank' rel='noreferrer' className='sd-proof-link'>
-                            <span>{proofIcon(p.type)} {p.type || 'Link'} <span>· proof #{p.id}</span></span>
+                        <hr className="sd-divider" />
+                        <div className="sd-section-title">
+                          <span
+                            className="sd-dot"
+                            style={{ background: "var(--green)" }}
+                          />
+                          Build Log Proofs
+                        </div>
+                        {proofLinks.slice(0, 8).map((p) => (
+                          <a
+                            key={p.id}
+                            href={p.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="sd-proof-link"
+                          >
+                            <span>
+                              {proofIcon(p.type)} {p.type || "Link"}{" "}
+                              <span>· proof #{p.id}</span>
+                            </span>
                             <span>Open →</span>
                           </a>
                         ))}
@@ -383,78 +477,157 @@ const ShowcaseDetails = () => {
 
                 {/* Build log */}
                 {idea?.updates?.length ? (
-                  <div className='sd-card'>
-                    <div className='sd-card-body'>
-                      <div className='sd-section-title'><span className='sd-dot' style={{ background: 'var(--orange)' }} />Build Log (Latest)</div>
-                      {[...idea.updates].slice(-5).reverse().map((u, idx) => (
-                        <div key={u.id} className='sd-update' style={{ animationDelay: `${idx * 0.04}s` }}>
-                          <div className='sd-update-header'>
-                            <span className='sd-update-author'>{u.user?.name || 'Member'}</span>
-                            <span className='sd-update-time'>{u.created_at ? new Date(u.created_at).toLocaleString() : ''}</span>
-                          </div>
-                          <div className='sd-update-content'>{u.content}</div>
-                          {u.proof_url && (
-                            <div>
-                              <a href={u.proof_url} target='_blank' rel='noreferrer' className='sd-update-proof'>
-                                {proofIcon(u.proof_type)}{u.proof_type === 'pdf' ? ' Open PDF' : u.proof_type === 'image' ? ' View Image' : ' View Proof'}
-                              </a>
-                              {u.proof_type === 'image' && (
-                                <img src={u.proof_url} alt='proof' className='sd-proof-img'
-                                  onError={e => e.currentTarget.style.display = 'none'} />
-                              )}
+                  <div className="sd-card">
+                    <div className="sd-card-body">
+                      <div className="sd-section-title">
+                        <span
+                          className="sd-dot"
+                          style={{ background: "var(--orange)" }}
+                        />
+                        Build Log (Latest)
+                      </div>
+                      {[...idea.updates]
+                        .slice(-5)
+                        .reverse()
+                        .map((u, idx) => (
+                          <div
+                            key={u.id}
+                            className="sd-update"
+                            style={{ animationDelay: `${idx * 0.04}s` }}
+                          >
+                            <div className="sd-update-header">
+                              <span className="sd-update-author">
+                                {u.user?.name || "Member"}
+                              </span>
+                              <span className="sd-update-time">
+                                {u.created_at
+                                  ? new Date(u.created_at).toLocaleString()
+                                  : ""}
+                              </span>
                             </div>
-                          )}
-                        </div>
-                      ))}
+                            <div className="sd-update-content">{u.content}</div>
+                            {u.proof_url && (
+                              <div>
+                                <a
+                                  href={u.proof_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="sd-update-proof"
+                                >
+                                  {proofIcon(u.proof_type)}
+                                  {u.proof_type === "pdf"
+                                    ? " Open PDF"
+                                    : u.proof_type === "image"
+                                      ? " View Image"
+                                      : " View Proof"}
+                                </a>
+                                {u.proof_type === "image" && (
+                                  <img
+                                    src={u.proof_url}
+                                    alt="proof"
+                                    className="sd-proof-img"
+                                    onError={(e) =>
+                                      (e.currentTarget.style.display = "none")
+                                    }
+                                  />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
                     </div>
                   </div>
                 ) : null}
               </div>
 
               {/* RIGHT */}
-              <div className='col-lg-4'>
-
+              <div className="col-lg-4">
                 {isStaff && (
-                  <div className='sd-staff-banner'>
-                    <b>Staff View:</b> You can republish or update this showcase by calling the publish endpoint again.
+                  <div className="sd-staff-banner">
+                    <b>Staff View:</b> You can republish or update this showcase
+                    by calling the publish endpoint again.
                   </div>
                 )}
 
                 {/* Team */}
-                <div className='sd-side-card'>
-                  <div className='sd-section-title'><span className='sd-dot' style={{ background: 'var(--blue)' }} />Team</div>
+                <div className="sd-side-card">
+                  <div className="sd-section-title">
+                    <span
+                      className="sd-dot"
+                      style={{ background: "var(--blue)" }}
+                    />
+                    Team
+                  </div>
                   {idea?.members?.length ? (
-                    <div className='sd-members'>
-                      {idea.members.map(m => (
-                        <span key={m.id} className='sd-member-chip'>{m.user?.name || 'Member'}</span>
+                    <div className="sd-members">
+                      {idea.members.map((m) => (
+                        <span key={m.id} className="sd-member-chip">
+                          {m.user?.name || "Member"}
+                        </span>
                       ))}
                     </div>
                   ) : (
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text2)' }}>Team members not loaded.</div>
+                    <div style={{ fontSize: "0.78rem", color: "var(--text2)" }}>
+                      Team members not loaded.
+                    </div>
                   )}
-                  <hr className='sd-divider' />
-                  <div className='sd-meta-row'>Status: <b>{idea?.status || (idea?.is_selected ? 'building' : 'proposed')}</b></div>
-                  <div className='sd-meta-row'>Votes: <b>{idea?.votes_count ?? 0}</b></div>
-                  <Link to={`/account/innovation/idea/${idea?.id}`} className='sd-action-btn'>Open Workspace →</Link>
+                  <hr className="sd-divider" />
+                  <div className="sd-meta-row">
+                    Status:{" "}
+                    <b>
+                      {idea?.status ||
+                        (idea?.is_selected ? "building" : "proposed")}
+                    </b>
+                  </div>
+                  <div className="sd-meta-row">
+                    Votes: <b>{idea?.votes_count ?? 0}</b>
+                  </div>
+                  <Link
+                    to={`/account/innovation/idea/${idea?.id}`}
+                    className="sd-action-btn"
+                  >
+                    Open Workspace →
+                  </Link>
                 </div>
 
                 {/* Problem */}
-                <div className='sd-side-card'>
-                  <div className='sd-section-title'><span className='sd-dot' style={{ background: 'var(--purple)' }} />Problem</div>
-                  <div style={{ fontWeight: 800, fontSize: '0.88rem', color: 'var(--text)', marginBottom: '0.5rem' }}>{problem?.title}</div>
-                  <div className='sd-problem-desc'>
-                    {String(problem?.description || '').slice(0, 220)}{String(problem?.description || '').length > 220 ? '…' : ''}
+                <div className="sd-side-card">
+                  <div className="sd-section-title">
+                    <span
+                      className="sd-dot"
+                      style={{ background: "var(--purple)" }}
+                    />
+                    Problem
                   </div>
-                  <Link to={`/account/innovation/problem/${problem?.id}`} className='sd-action-btn sec' style={{ marginTop: '0.8rem' }}>View Problem →</Link>
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      fontSize: "0.88rem",
+                      color: "var(--text)",
+                      marginBottom: "0.5rem",
+                    }}
+                  >
+                    {problem?.title}
+                  </div>
+                  <div className="sd-problem-desc">
+                    {String(problem?.description || "").slice(0, 220)}
+                    {String(problem?.description || "").length > 220 ? "…" : ""}
+                  </div>
+                  <Link
+                    to={`/account/innovation/problem/${problem?.id}`}
+                    className="sd-action-btn sec"
+                    style={{ marginTop: "0.8rem" }}
+                  >
+                    View Problem →
+                  </Link>
                 </div>
-
               </div>
             </div>
           )}
         </div>
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default ShowcaseDetails
+export default ShowcaseDetails;

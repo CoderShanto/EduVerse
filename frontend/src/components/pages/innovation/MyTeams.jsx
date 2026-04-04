@@ -1,9 +1,9 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react'
-import Layout from '../../common/Layout'
-import { Link } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { apiUrl, token as configToken } from '../../common/Config'
-import { AuthContext } from '../../context/Auth'
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import Layout from "../../common/Layout";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { apiUrl, getToken as configToken } from "../../common/Config";
+import { AuthContext } from "../../context/Auth";
 
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400&display=swap');
@@ -203,123 +203,193 @@ const css = `
   @keyframes mt-up { from{opacity:0;transform:translateY(18px);} to{opacity:1;transform:translateY(0);} }
 
   @media (max-width: 600px) { .mt-hero { flex-direction: column; } .mt-grid { grid-template-columns: 1fr; } }
-`
+`;
 
 const MyTeams = () => {
-  const { user } = useContext(AuthContext)
-  const authToken = useMemo(() => user?.token || user?.user?.token || configToken, [user])
+  const { user } = useContext(AuthContext);
+  const authToken = useMemo(
+    () => user?.token || user?.user?.token || configToken,
+    [user],
+  );
 
-  const [loading, setLoading] = useState(true)
-  const [items, setItems] = useState([])
-  const [meta, setMeta] = useState(null)
+  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState([]);
+  const [meta, setMeta] = useState(null);
 
   const fetchMyTeams = async (page = 1) => {
     try {
-      setLoading(true)
+      setLoading(true);
       const res = await fetch(`${apiUrl}/innovation/my-teams?page=${page}`, {
-        headers: { Accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      })
-      const result = await res.json()
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+      const result = await res.json();
       if (result.status === 200) {
-        setItems(result.data?.data || [])
-        setMeta({ current_page: result.data?.current_page || 1, last_page: result.data?.last_page || 1, total: result.data?.total || 0 })
-      } else toast.error(result.message || 'Failed to load my teams')
+        setItems(result.data?.data || []);
+        setMeta({
+          current_page: result.data?.current_page || 1,
+          last_page: result.data?.last_page || 1,
+          total: result.data?.total || 0,
+        });
+      } else toast.error(result.message || "Failed to load my teams");
     } catch (e) {
-      console.log(e); toast.error('Server error loading my teams')
-    } finally { setLoading(false) }
-  }
+      console.log(e);
+      toast.error("Server error loading my teams");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  useEffect(() => { if (authToken) fetchMyTeams(1) }, [authToken])
+  useEffect(() => {
+    if (authToken) fetchMyTeams(1);
+  }, [authToken]);
 
   return (
     <Layout>
       <style>{css}</style>
-      <div className='mt-blob-wrap'>
-        <div className='mt-blob mt-blob-1' /><div className='mt-blob mt-blob-2' /><div className='mt-blob mt-blob-3' />
+      <div className="mt-blob-wrap">
+        <div className="mt-blob mt-blob-1" />
+        <div className="mt-blob mt-blob-2" />
+        <div className="mt-blob mt-blob-3" />
       </div>
 
-      <div className='mt-root'>
-        <div className='container mt-inner'>
-
+      <div className="mt-root">
+        <div className="container mt-inner">
           {/* Hero */}
-          <div className='mt-hero'>
-            <div className='mt-hero-deco d1' /><div className='mt-hero-deco d2' />
-            <div className='mt-hero-left'>
-              <div className='mt-hero-title'>👥 My Teams</div>
-              <div className='mt-hero-sub'>Ideas you joined — team workspace stage.</div>
+          <div className="mt-hero">
+            <div className="mt-hero-deco d1" />
+            <div className="mt-hero-deco d2" />
+            <div className="mt-hero-left">
+              <div className="mt-hero-title">👥 My Teams</div>
+              <div className="mt-hero-sub">
+                Ideas you joined — team workspace stage.
+              </div>
             </div>
-            <Link to='/account/innovation' className='mt-back-btn'>← Back to Hub</Link>
+            <Link to="/account/innovation" className="mt-back-btn">
+              ← Back to Hub
+            </Link>
           </div>
 
           {/* Content */}
           {loading ? (
-            <div className='mt-grid'>
-              {[1,2,3,4].map(i => <div key={i} className='mt-skeleton' />)}
+            <div className="mt-grid">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="mt-skeleton" />
+              ))}
             </div>
           ) : items.length === 0 ? (
-            <div className='mt-empty'>
-              <div style={{ fontSize: '2.5rem', opacity: 0.4 }}>👥</div>
-              <p>You have not joined any teams yet. Join after an idea is selected in the Problem Hub.</p>
+            <div className="mt-empty">
+              <div style={{ fontSize: "2.5rem", opacity: 0.4 }}>👥</div>
+              <p>
+                You have not joined any teams yet. Join after an idea is
+                selected in the Problem Hub.
+              </p>
             </div>
           ) : (
-            <div className='mt-grid'>
+            <div className="mt-grid">
               {items.map((idea, idx) => {
-                const members = idea.members_users || idea.membersUsers || []
-                const visible = members.slice(0, 6)
-                const extra = members.length - 6
+                const members = idea.members_users || idea.membersUsers || [];
+                const visible = members.slice(0, 6);
+                const extra = members.length - 6;
                 return (
-                  <div className='mt-card' key={idea.id} style={{ animationDelay: `${idx * 0.05}s` }}>
+                  <div
+                    className="mt-card"
+                    key={idea.id}
+                    style={{ animationDelay: `${idx * 0.05}s` }}
+                  >
                     {/* Top band */}
-                    <div className='mt-card-band'>
-                      <div className='mt-card-top'>
-                        <span className='mt-cat-pill'>{idea.problem?.category || 'General'}</span>
-                        <span className={`mt-status-pill ${idea.is_selected ? 'selected' : 'building'}`}>
-                          {idea.is_selected ? '✓ Selected' : 'Building'}
+                    <div className="mt-card-band">
+                      <div className="mt-card-top">
+                        <span className="mt-cat-pill">
+                          {idea.problem?.category || "General"}
+                        </span>
+                        <span
+                          className={`mt-status-pill ${idea.is_selected ? "selected" : "building"}`}
+                        >
+                          {idea.is_selected ? "✓ Selected" : "Building"}
                         </span>
                       </div>
-                      <div className='mt-idea-title'>{idea.title}</div>
-                      <div className='mt-problem-ref'>Problem: <b>{idea.problem?.title || '—'}</b> · <span style={{ color: 'var(--text3)' }}>{idea.problem?.status || '—'}</span></div>
+                      <div className="mt-idea-title">{idea.title}</div>
+                      <div className="mt-problem-ref">
+                        Problem: <b>{idea.problem?.title || "—"}</b> ·{" "}
+                        <span style={{ color: "var(--text3)" }}>
+                          {idea.problem?.status || "—"}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Body */}
-                    <div className='mt-card-body'>
+                    <div className="mt-card-body">
                       <div>
-                        <div className='mt-members-label'>Team Members</div>
-                        <div className='mt-members'>
-                          {visible.map(m => (
-                            <span key={m.id} className='mt-member-chip'>{m.name}</span>
+                        <div className="mt-members-label">Team Members</div>
+                        <div className="mt-members">
+                          {visible.map((m) => (
+                            <span key={m.id} className="mt-member-chip">
+                              {m.name}
+                            </span>
                           ))}
-                          {extra > 0 && <span className='mt-more-chip'>+{extra} more</span>}
-                          {members.length === 0 && <span style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>No members yet</span>}
+                          {extra > 0 && (
+                            <span className="mt-more-chip">+{extra} more</span>
+                          )}
+                          {members.length === 0 && (
+                            <span
+                              style={{
+                                fontSize: "0.75rem",
+                                color: "var(--text3)",
+                              }}
+                            >
+                              No members yet
+                            </span>
+                          )}
                         </div>
                       </div>
 
-                      <div className='mt-card-footer'>
-                        <span className='mt-votes-chip'>↑ {idea.votes_count ?? 0} votes</span>
-                        <Link to={`/account/innovation/idea/${idea.id}`} className='mt-workspace-btn'>
+                      <div className="mt-card-footer">
+                        <span className="mt-votes-chip">
+                          ↑ {idea.votes_count ?? 0} votes
+                        </span>
+                        <Link
+                          to={`/account/innovation/idea/${idea.id}`}
+                          className="mt-workspace-btn"
+                        >
                           Workspace →
                         </Link>
                       </div>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           )}
 
           {/* Pagination */}
           {meta && meta.last_page > 1 && (
-            <div className='mt-pagination'>
-              <button className='mt-page-btn' disabled={meta.current_page <= 1} onClick={() => fetchMyTeams(meta.current_page - 1)}>← Prev</button>
-              <span className='mt-page-info'>Page {meta.current_page} of {meta.last_page}</span>
-              <button className='mt-page-btn' disabled={meta.current_page >= meta.last_page} onClick={() => fetchMyTeams(meta.current_page + 1)}>Next →</button>
+            <div className="mt-pagination">
+              <button
+                className="mt-page-btn"
+                disabled={meta.current_page <= 1}
+                onClick={() => fetchMyTeams(meta.current_page - 1)}
+              >
+                ← Prev
+              </button>
+              <span className="mt-page-info">
+                Page {meta.current_page} of {meta.last_page}
+              </span>
+              <button
+                className="mt-page-btn"
+                disabled={meta.current_page >= meta.last_page}
+                onClick={() => fetchMyTeams(meta.current_page + 1)}
+              >
+                Next →
+              </button>
             </div>
           )}
-
         </div>
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default MyTeams
+export default MyTeams;
