@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Link, useParams } from "react-router-dom";
 import { apiUrl, getToken } from "../../../common/Config";
+import { useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { MdDragIndicator } from "react-icons/md";
 import { BsPencilSquare } from "react-icons/bs";
 import { FaTrashAlt } from "react-icons/fa";
-import UpdateRequirement from "./UpdateRequirement";
+
+import UpdateOutcome from "./UpdateOutcome";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-const ManageRequirement = () => {
+const ManageOutcome = () => {
   const [loading, setLoading] = useState(false);
-  const [requirements, setRequirements] = useState([]);
-  const [requirementData, setRequirementData] = useState([]);
+  const [outcomes, setOutcomes] = useState([]);
+  const [outcomeData, setOutcomeData] = useState([]);
   const {
     register,
     handleSubmit,
@@ -21,19 +22,50 @@ const ManageRequirement = () => {
   } = useForm();
   const params = useParams();
 
-  const [showRequirement, setShowRequirement] = useState(false);
+  const [showOutcome, setShowOutcome] = useState(false);
 
-  const handleClose = () => setShowRequirement(false);
-  const handleShow = (requirement) => {
-    setShowRequirement(true);
-    setRequirementData(requirement);
+  const handleClose = () => setShowOutcome(false);
+  const handleShow = (outcome) => {
+    setShowOutcome(true);
+    setOutcomeData(outcome);
+  };
+
+  const handleDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const reorderedItems = Array.from(outcomes);
+    const [movedItem] = reorderedItems.splice(result.source.index, 1);
+    reorderedItems.splice(result.destination.index, 0, movedItem);
+
+    setOutcomes(reorderedItems);
+    saveOrder(reorderedItems);
+  };
+
+  const saveOrder = async (updatedOutcomes) => {
+    await fetch(`${apiUrl}/sort-outcomes`, {
+      method: "POST",
+      headers: {
+        "Content-type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${getToken}`,
+      },
+      body: JSON.stringify({ outcomes: updatedOutcomes }),
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        if (result.status == 200) {
+          toast.success(result.message);
+        } else {
+          console.log("Something went wrong");
+        }
+      });
   };
 
   const onSubmit = async (data) => {
     setLoading(true);
     const formData = { ...data, course_id: params.id };
 
-    await fetch(`${apiUrl}/requirements`, {
+    await fetch(`${apiUrl}/outcomes`, {
       method: "POST",
       headers: {
         "Content-type": "application/json",
@@ -47,8 +79,8 @@ const ManageRequirement = () => {
         setLoading(false);
 
         if (result.status == 200) {
-          const newRequirements = [...requirements, result.data];
-          setRequirements(newRequirements);
+          const newoutcomes = [...outcomes, result.data];
+          setOutcomes(newoutcomes);
           toast.success(result.message);
           reset();
         } else {
@@ -57,39 +89,8 @@ const ManageRequirement = () => {
       });
   };
 
-  const handleDragEnd = (result) => {
-    if (!result.destination) return;
-
-    const reorderedItems = Array.from(requirements);
-    const [movedItem] = reorderedItems.splice(result.source.index, 1);
-    reorderedItems.splice(result.destination.index, 0, movedItem);
-
-    setRequirements(reorderedItems);
-    saveOrder(reorderedItems);
-  };
-
-  const saveOrder = async (updatedRequirements) => {
-    await fetch(`${apiUrl}/sort-requirements`, {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${getToken}`,
-      },
-      body: JSON.stringify({ requirements: updatedRequirements }),
-    })
-      .then((res) => res.json())
-      .then((result) => {
-        if (result.status == 200) {
-          toast.success(result.message);
-        } else {
-          console.log("Something went wrong");
-        }
-      });
-  };
-
-  const fetchRequirement = async () => {
-    await fetch(`${apiUrl}/requirements?course_id=${params.id}`, {
+  const fetchOutcomes = async () => {
+    await fetch(`${apiUrl}/outcomes?course_id=${params.id}`, {
       method: "GET",
       headers: {
         "Content-type": "application/json",
@@ -99,22 +100,24 @@ const ManageRequirement = () => {
     })
       .then((res) => res.json())
       .then((result) => {
+        console.log(result);
+
         if (result.status == 200) {
-          setRequirements(result.data);
+          setOutcomes(result.data);
         } else {
           console.log("Something went wrong");
         }
       });
   };
 
-  const deleteRequirement = async (id) => {
-    if (confirm("Are you sure you want to delete this requirement?")) {
-      await fetch(`${apiUrl}/requirements/${id}`, {
+  const deleteOutcome = async (id) => {
+    if (confirm("Are you sure you want to delete this outcome?")) {
+      await fetch(`${apiUrl}/outcomes/${id}`, {
         method: "DELETE",
         headers: {
           "Content-type": "application/json",
           Accept: "application/json",
-          Authorization: `Bearer ${getToken}`,
+          Authorization: `Bearer ${token}`,
         },
       })
         .then((res) => res.json())
@@ -122,10 +125,8 @@ const ManageRequirement = () => {
           setLoading(false);
 
           if (result.status == 200) {
-            const newRequirements = requirements.filter(
-              (requirement) => requirement.id !== id,
-            );
-            setRequirements(newRequirements);
+            const newOutcomes = outcomes.filter((outcome) => outcome.id !== id);
+            setOutcomes(newOutcomes);
             toast.success(result.message);
           } else {
             console.log("Something went wrong");
@@ -135,29 +136,29 @@ const ManageRequirement = () => {
   };
 
   useEffect(() => {
-    fetchRequirement();
+    fetchOutcomes();
   }, []);
 
   return (
     <>
-      <div className="card border-0 shadow-lg mt-4">
+      <div className="card border-0 shadow-lg">
         <div className="card-body p-4">
           <div className="d-flex">
-            <h4 className="h5 mb-4">Requirement</h4>
+            <h4 className="h5 mb-4">Outcome</h4>
           </div>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="mb-3">
               <input
-                {...register("requirement", {
-                  required: "The requirement field is required",
+                {...register("outcome", {
+                  required: "The Outcome field is required",
                 })}
                 type="text"
-                className={`form-control ${errors.requirement && "is-invalid"}`}
-                placeholder="Requirement"
+                className={`form-control ${errors.outcome && "is-invalid"}`}
+                placeholder="Outcome"
               />
-              {errors.requirement && (
+              {errors.outcome && (
                 <p className="invalid-feedback text-danger">
-                  {errors.requirement.message}
+                  {errors.outcome.message}
                 </p>
               )}
 
@@ -175,10 +176,10 @@ const ManageRequirement = () => {
                   ref={provided.innerRef}
                   className="space-y-2"
                 >
-                  {requirements.map((requirement, index) => (
+                  {outcomes.map((outcome, index) => (
                     <Draggable
-                      key={requirement.id}
-                      draggableId={`${requirement.id}`}
+                      key={outcome.id}
+                      draggableId={`${outcome.id}`}
                       index={index}
                     >
                       {(provided) => (
@@ -193,18 +194,16 @@ const ManageRequirement = () => {
                               <MdDragIndicator />
                             </div>
                             <div className="d-flex justify-content-between w-100">
-                              <div className="ps-2">{requirement.text}</div>
+                              <div className="ps-2">{outcome.text}</div>
                               <div className="d-flex">
                                 <Link
-                                  onClick={() => handleShow(requirement)}
+                                  onClick={() => handleShow(outcome)}
                                   className="text-primary me-1"
                                 >
                                   <BsPencilSquare />
                                 </Link>
                                 <Link
-                                  onClick={() =>
-                                    deleteRequirement(requirement.id)
-                                  }
+                                  onClick={() => deleteOutcome(outcome.id)}
                                   className="text-danger"
                                 >
                                   <FaTrashAlt />
@@ -221,17 +220,48 @@ const ManageRequirement = () => {
               )}
             </Droppable>
           </DragDropContext>
+
+          {/* {outcomes &&
+            outcomes.map((outcome) => {
+              return (
+                <div key={`outcome-${outcome.id}`} className="card shadow mb-2">
+                  <div className="card-body p-2 d-flex">
+                    <div>
+                      <MdDragIndicator />
+                    </div>
+                    <div className="d-flex justify-content-between w-100">
+                      <div className="ps-2">{outcome.text}</div>
+                      <div className="d-flex">
+                        <Link
+                          onClick={() => handleShow(outcome)}
+                          className="text-primary me-1"
+                        >
+                          <BsPencilSquare />
+                        </Link>
+                        <Link
+                          onClick={() => deleteOutcome(outcome.id)}
+                          className="text-danger"
+                        >
+                          <FaTrashAlt />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}  /*} */}
         </div>
       </div>
-      <UpdateRequirement
-        showRequirement={showRequirement}
-        requirements={requirements}
-        setRequirements={setRequirements}
-        requirementData={requirementData}
+
+      <UpdateOutcome
+        outcomeData={outcomeData}
+        showOutcome={showOutcome}
         handleClose={handleClose}
+        outcomes={outcomes}
+        setOutcomes={setOutcomes}
       />
     </>
   );
 };
 
-export default ManageRequirement;
+export default ManageOutcome;
